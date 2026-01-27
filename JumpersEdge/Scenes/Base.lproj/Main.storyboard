@@ -1,13 +1,68 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="24506" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="24506" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="bVV-ps-WOf">
     <device id="ipad9_7" orientation="portrait" layout="fullscreen" appearance="light"/>
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="24504"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="collection view cell content view" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
+        <!--View Controller-->
+        <scene sceneID="OC6-gu-KVQ">
+            <objects>
+                <viewController id="tml-3r-UDX" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="k2J-83-XnM" customClass="MainViewController">
+                        <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Welcome Back, Coach" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="PbE-ZU-Riv">
+                                <rect key="frame" x="20" y="135" width="232" height="29"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" secondItem="PbE-ZU-Riv" secondAttribute="height" multiplier="8:1" id="z5g-Fx-3Nk"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="24"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="GY1-R6-Ogc">
+                                <rect key="frame" x="20" y="215" width="113" height="35"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="plain" title="Add Athlete"/>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="dDN-yk-5bk">
+                                <rect key="frame" x="20" y="172" width="64" height="35"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" secondItem="dDN-yk-5bk" secondAttribute="height" multiplier="144:35" constant="-80" id="vh7-aq-dqS"/>
+                                </constraints>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="plain" title="Stats"/>
+                                <connections>
+                                    <segue destination="BYZ-38-t0r" kind="show" id="xDN-FA-c1i"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="3KN-7f-hS4"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="PbE-ZU-Riv" firstAttribute="top" secondItem="3KN-7f-hS4" secondAttribute="top" constant="61" id="D5c-rj-9kL"/>
+                            <constraint firstItem="GY1-R6-Ogc" firstAttribute="leading" secondItem="dDN-yk-5bk" secondAttribute="leading" id="DML-ED-VpN"/>
+                            <constraint firstItem="GY1-R6-Ogc" firstAttribute="top" secondItem="dDN-yk-5bk" secondAttribute="bottom" constant="8" id="IXz-0i-sgj"/>
+                            <constraint firstItem="PbE-ZU-Riv" firstAttribute="leading" secondItem="k2J-83-XnM" secondAttribute="leadingMargin" id="Uhl-zB-CGg"/>
+                            <constraint firstItem="3KN-7f-hS4" firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="GY1-R6-Ogc" secondAttribute="trailing" symbolic="YES" id="VTE-B8-Dxn"/>
+                            <constraint firstItem="3KN-7f-hS4" firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="dDN-yk-5bk" secondAttribute="trailing" symbolic="YES" id="Y3i-5J-UN9"/>
+                            <constraint firstItem="3KN-7f-hS4" firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="PbE-ZU-Riv" secondAttribute="trailing" symbolic="YES" id="cuj-Pe-6uX"/>
+                            <constraint firstItem="dDN-yk-5bk" firstAttribute="leading" secondItem="PbE-ZU-Riv" secondAttribute="trailing" constant="-232" id="gjm-Al-UUH"/>
+                            <constraint firstItem="dDN-yk-5bk" firstAttribute="centerY" secondItem="PbE-ZU-Riv" secondAttribute="centerY" constant="40" id="m71-0H-k2L"/>
+                        </constraints>
+                    </view>
+                    <navigationItem key="navigationItem" id="hVn-bs-WUQ"/>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="PBz-I3-Oc2" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="828.125" y="-554.296875"/>
+        </scene>
         <!--View Controller-->
         <scene sceneID="tne-QT-ifu">
             <objects>
@@ -16,34 +71,71 @@
                         <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <stackView opaque="NO" contentMode="scaleToFill" fixedFrame="YES" axis="vertical" spacing="35" translatesAutoresizingMaskIntoConstraints="NO" id="Cya-Kg-Jl0">
-                                <rect key="frame" x="621" y="20" width="127" height="104"/>
-                                <subviews>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Kwt-oh-oCQ">
-                                        <rect key="frame" x="0.0" y="0.0" width="127" height="34.5"/>
-                                        <state key="normal" title="Button"/>
-                                        <buttonConfiguration key="configuration" style="plain" title="Upload Video"/>
-                                    </button>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="8UF-av-lp6">
-                                        <rect key="frame" x="0.0" y="69.5" width="127" height="34.5"/>
-                                        <state key="normal" title="Button"/>
-                                        <buttonConfiguration key="configuration" style="plain" title="Video Library"/>
-                                    </button>
-                                </subviews>
-                            </stackView>
+                            <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="GEG-AP-5q2" customClass="StatsViewController">
+                                <rect key="frame" x="0.0" y="74" width="768" height="950"/>
+                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                                <collectionViewFlowLayout key="collectionViewLayout" automaticEstimatedItemSize="YES" minimumLineSpacing="10" minimumInteritemSpacing="10" id="m7m-09-9fJ">
+                                    <size key="itemSize" width="128" height="128"/>
+                                    <size key="headerReferenceSize" width="0.0" height="0.0"/>
+                                    <size key="footerReferenceSize" width="0.0" height="0.0"/>
+                                    <inset key="sectionInset" minX="0.0" minY="0.0" maxX="0.0" maxY="0.0"/>
+                                </collectionViewFlowLayout>
+                                <cells>
+                                    <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="cell" id="l7J-A4-sjm">
+                                        <rect key="frame" x="0.0" y="0.0" width="128" height="128"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <collectionViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" id="Vc7-d8-lZv">
+                                            <rect key="frame" x="0.0" y="0.0" width="128" height="128"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                        </collectionViewCellContentView>
+                                    </collectionViewCell>
+                                </cells>
+                            </collectionView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
-                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <color key="backgroundColor" systemColor="tertiarySystemGroupedBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="GEG-AP-5q2" secondAttribute="trailing" id="6TQ-Ze-Lq3"/>
+                            <constraint firstItem="GEG-AP-5q2" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="8bn-QT-qWB"/>
+                            <constraint firstItem="GEG-AP-5q2" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" id="Q0O-Ua-7of"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="GEG-AP-5q2" secondAttribute="bottom" id="k2R-EH-q3l"/>
+                        </constraints>
+                        <edgeInsets key="layoutMargins" top="0.0" left="20" bottom="0.0" right="20"/>
                     </view>
+                    <navigationItem key="navigationItem" id="9ht-Br-vda"/>
+                    <connections>
+                        <outlet property="collectionView" destination="GEG-AP-5q2" id="Lou-0t-Sfr"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="138.28125" y="130.6640625"/>
         </scene>
+        <!--Navigation Controller-->
+        <scene sceneID="W4M-hE-oh3">
+            <objects>
+                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="bVV-ps-WOf" sceneMemberID="viewController">
+                    <toolbarItems/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="occ-jp-dIZ">
+                        <rect key="frame" x="0.0" y="20" width="768" height="54"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <nil name="viewControllers"/>
+                    <connections>
+                        <segue destination="tml-3r-UDX" kind="relationship" relationship="rootViewController" id="uYe-mi-9iZ"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="DeA-jG-LNl" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="62.5" y="-554.296875"/>
+        </scene>
     </scenes>
     <resources>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+        <systemColor name="tertiarySystemGroupedBackgroundColor">
+            <color red="0.94901960780000005" green="0.94901960780000005" blue="0.96862745100000003" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
     </resources>
 </document>
