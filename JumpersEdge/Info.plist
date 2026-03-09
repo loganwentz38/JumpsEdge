@@ -4,6 +4,10 @@
 <dict>
 	<key>CFBundleIdentifier</key>
 	<string></string>
+	<key>NSCameraUsageDescription</key>
+	<string>JumpersEdge needs camera access to record jump videos.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>JumpersEdge needs microphone access to record audio with jump videos.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

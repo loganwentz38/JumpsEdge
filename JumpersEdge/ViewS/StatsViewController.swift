@@ -15,64 +15,66 @@ class StatsViewController: UIViewController,
     @IBOutlet weak var collectionView: UICollectionView!
 
     // MARK: - Athlete Data
-    var athletes: [Athlete] = [
-        Athlete(name: "Logan", speed: 8.2, stamina: 7.5, strength: 9.1),
-        Athlete(name: "Mike", speed: 6.8, stamina: 8.9, strength: 7.0),
-        Athlete(name: "Chris", speed: 9.0, stamina: 6.5, strength: 8.3),
-        Athlete(name: "Sam", speed: 7.1, stamina: 9.2, strength: 6.4)
-    ]
+    var athletes: [Athlete] {
+        return AthleteStore.shared.athletes
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        title = "Athletes"
+
         collectionView.delegate = self
         collectionView.dataSource = self
+        collectionView.contentInset = UIEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)
 
+        // Disable automatic sizing so sizeForItemAt is used
+        if let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout {
+            layout.estimatedItemSize = .zero
+        }
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        collectionView.reloadData()
+    }
 
     // MARK: - Collection View Data
-    
+
     func numberOfSections(in collectionView: UICollectionView) -> Int {
-            return 1
-        }
+        return 1
+    }
 
-        func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-            return athletes.count
-        }
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return athletes.count
+    }
 
-        func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath) as! StatCell
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath) as! StatCell
+        cell.configure(with: athletes[indexPath.item])
+        return cell
+    }
 
-            // Configure the cell with athlete data
-            let athlete = athletes[indexPath.item]
-            cell.configure(with: athlete)
-
-            return cell
-        }
-
-    // MARK: - 3 Column Layout
+    // MARK: - Layout
 
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         sizeForItemAt indexPath: IndexPath) -> CGSize {
-
-        let spacing: CGFloat = 10
-        let totalSpacing = spacing * 4
-        let width = (collectionView.frame.width - totalSpacing) / 3
-
-        return CGSize(width: width, height: width)
+        let inset = collectionView.contentInset.left + collectionView.contentInset.right
+        let spacing: CGFloat = 12
+        let width = (collectionView.bounds.width - inset - spacing * 2) / 3
+        return CGSize(width: width, height: width * 1.1)
     }
 
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
-        return 10
+        return 12
     }
 
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        return 10
+        return 12
     }
 }

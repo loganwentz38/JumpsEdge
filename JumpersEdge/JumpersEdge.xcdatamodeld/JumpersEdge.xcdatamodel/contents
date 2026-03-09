@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23507" systemVersion="25D56" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="NO" userDefinedModelVersionIdentifier="">
+    <entity name="AthleteEntity" representedClassName="AthleteEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="createdAt" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="event" attributeType="String" defaultValueString="Long Jump"/>
+        <attribute name="firstName" attributeType="String" defaultValueString=""/>
+        <attribute name="lastName" attributeType="String" defaultValueString=""/>
+        <attribute name="speed" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="stamina" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="strength" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="videoURLsData" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromDataTransformerName" customClassName="[String]"/>
+    </entity>
+</model>
