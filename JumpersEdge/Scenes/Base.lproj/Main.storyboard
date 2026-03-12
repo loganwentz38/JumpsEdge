@@ -90,6 +90,27 @@
                                     <action selector="addAthleteButtonTapped:" destination="tml-3r-UDX" eventType="touchUpInside" id="C7M-2g-3hX"/>
                                 </connections>
                             </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="rJm-V8-Kp2">
+                                <rect key="frame" x="274" y="507" width="220" height="50"/>
+                                <color key="backgroundColor" systemColor="systemBlueColor"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="50" id="hT3-Qw-9Lm"/>
+                                    <constraint firstAttribute="width" constant="220" id="pR4-Xz-7Bn"/>
+                                </constraints>
+                                <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="plain" title="Record Jump" titleAlignment="center">
+                                    <fontDescription key="titleFontDescription" type="system" weight="semibold" pointSize="18"/>
+                                </buttonConfiguration>
+                                <userDefinedRuntimeAttributes>
+                                    <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                                        <integer key="value" value="10"/>
+                                    </userDefinedRuntimeAttribute>
+                                </userDefinedRuntimeAttributes>
+                                <connections>
+                                    <action selector="recordJumpButtonTapped:" destination="tml-3r-UDX" eventType="touchUpInside" id="mK5-Nw-4Qc"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="3KN-7f-hS4"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
@@ -103,6 +124,8 @@
                             <constraint firstItem="nc5-4Q-T4P" firstAttribute="centerX" secondItem="PbE-ZU-Riv" secondAttribute="centerX" id="cDd-r2-nKT"/>
                             <constraint firstItem="3KN-7f-hS4" firstAttribute="trailing" secondItem="PbE-ZU-Riv" secondAttribute="trailing" constant="20" id="fco-3y-ezM"/>
                             <constraint firstItem="PbE-ZU-Riv" firstAttribute="top" secondItem="nc5-4Q-T4P" secondAttribute="bottom" constant="24" id="qM9-dq-2c1"/>
+                            <constraint firstItem="rJm-V8-Kp2" firstAttribute="top" secondItem="GY1-R6-Ogc" secondAttribute="bottom" constant="20" id="vN7-Bx-3Rw"/>
+                            <constraint firstItem="rJm-V8-Kp2" firstAttribute="centerX" secondItem="k2J-83-XnM" secondAttribute="centerX" id="wM8-Cy-4Sz"/>
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="hVn-bs-WUQ"/>
@@ -211,7 +234,7 @@
         <!--Add Athlete View-->
         <scene sceneID="tsq-rV-06U">
             <objects>
-                <viewController id="MLD-9B-AJN" sceneMemberID="viewController">
+                <viewController id="MLD-9B-AJN" customClass="AddAthleteViewController" customModule="JumpersEdge" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="BZx-85-JaZ">
                         <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
