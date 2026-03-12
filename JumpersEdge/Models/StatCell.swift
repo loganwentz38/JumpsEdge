@@ -32,12 +32,10 @@ class StatCell: UICollectionViewCell {
     // MARK: - Card Setup
 
     private func setupCard() {
-        // Card background
         contentView.backgroundColor = .systemBackground
         contentView.layer.cornerRadius = 14
         contentView.layer.masksToBounds = true
 
-        // Shadow on outer layer (not contentView, so it's visible outside clip bounds)
         layer.shadowColor = UIColor.black.cgColor
         layer.shadowOpacity = 0.08
         layer.shadowOffset = CGSize(width: 0, height: 2)
@@ -102,9 +100,10 @@ class StatCell: UICollectionViewCell {
 
     private func setupStatRows() {
         let stats: [(String, UIColor)] = [
-            ("Speed", .systemBlue),
-            ("Stamina", .systemGreen),
-            ("Strength", .systemOrange),
+            ("Avg Speed", .systemBlue),
+            ("Avg Air", .systemGreen),
+            ("Jumps", .systemOrange),
+            ("Consist.", .systemPurple),
         ]
 
         var lastAnchor = divider.bottomAnchor
@@ -114,7 +113,7 @@ class StatCell: UICollectionViewCell {
             contentView.addSubview(row)
 
             NSLayoutConstraint.activate([
-                row.topAnchor.constraint(equalTo: lastAnchor, constant: 10),
+                row.topAnchor.constraint(equalTo: lastAnchor, constant: 8),
                 row.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 12),
                 row.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -12),
                 row.heightAnchor.constraint(equalToConstant: 20),
@@ -161,10 +160,19 @@ class StatCell: UICollectionViewCell {
         initialLabel.text = String(athlete.name.prefix(1)).uppercased()
         athleteNameLabel.text = athlete.name
 
-        let values = [athlete.speed, athlete.stamina, athlete.strength]
+        let speedVal = athlete.averageApproachSpeed ?? 0
+        let airVal = athlete.averageAirTime ?? 0
+        let jumpCount = Double(athlete.jumpCount)
+        let consistency = (athlete.consistencyScore ?? 0) * 10
+
+        let values = [speedVal, airVal, jumpCount, consistency]
+        let maxValues: [Double] = [12.0, 2.0, 50.0, 10.0]
+        let formatStrings = ["%.1f", "%.2f", "%.0f", "%.1f"]
+
         for (i, value) in values.enumerated() {
-            progressBars[i].progress = Float(value / 10.0)
-            valueLabels[i].text = String(format: "%.1f", value)
+            guard i < progressBars.count else { break }
+            progressBars[i].progress = Float(min(value / maxValues[i], 1.0))
+            valueLabels[i].text = String(format: formatStrings[i], value)
         }
     }
 }

@@ -14,6 +14,13 @@ class CoreDataStack {
 
     private init() {
         persistentContainer = NSPersistentContainer(name: "JumpersEdge")
+
+        // Enable lightweight migration
+        if let description = persistentContainer.persistentStoreDescriptions.first {
+            description.setOption(true as NSNumber, forKey: NSMigratePersistentStoresAutomaticallyOption)
+            description.setOption(true as NSNumber, forKey: NSInferMappingModelAutomaticallyOption)
+        }
+
         persistentContainer.loadPersistentStores { _, error in
             if let error = error {
                 fatalError("Core Data failed to load: \(error.localizedDescription)")

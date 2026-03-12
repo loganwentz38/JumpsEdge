@@ -63,7 +63,14 @@ class StatsViewController: UIViewController,
         let inset = collectionView.contentInset.left + collectionView.contentInset.right
         let spacing: CGFloat = 12
         let width = (collectionView.bounds.width - inset - spacing * 2) / 3
-        return CGSize(width: width, height: width * 1.1)
+        return CGSize(width: width, height: width * 1.3)
+    }
+
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let detailVC = AthleteDetailViewController()
+        detailVC.athlete = athletes[indexPath.item]
+        detailVC.athleteIndex = indexPath.item
+        navigationController?.pushViewController(detailVC, animated: true)
     }
 
     func collectionView(_ collectionView: UICollectionView,

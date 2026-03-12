@@ -12,6 +12,7 @@ class AddAthleteViewController: UIViewController {
     private let firstNameField = UITextField()
     private let lastNameField = UITextField()
     private let eventSegment = UISegmentedControl(items: ["Long Jump", "Triple Jump", "Both"])
+    private let heightField = UITextField()
     private let saveButton = UIButton(type: .system)
 
     override func viewDidLoad() {
@@ -50,6 +51,11 @@ class AddAthleteViewController: UIViewController {
         let eventLabel = makeLabel("Event")
         eventSegment.selectedSegmentIndex = 0
 
+        // Height
+        let heightLabel = makeLabel("Height (meters)")
+        styleTextField(heightField, placeholder: "e.g. 1.83")
+        heightField.keyboardType = .decimalPad
+
         // Save Button
         saveButton.setTitle("Save Athlete", for: .normal)
         saveButton.titleLabel?.font = .systemFont(ofSize: 18, weight: .semibold)
@@ -66,6 +72,8 @@ class AddAthleteViewController: UIViewController {
         stack.addArrangedSubview(lastNameField)
         stack.addArrangedSubview(eventLabel)
         stack.addArrangedSubview(eventSegment)
+        stack.addArrangedSubview(heightLabel)
+        stack.addArrangedSubview(heightField)
 
         // Extra spacing before save button
         let spacer = UIView()
@@ -102,13 +110,14 @@ class AddAthleteViewController: UIViewController {
         let events: [JumpEvent] = [.longJump, .tripleJump, .both]
         let selectedEvent = events[eventSegment.selectedSegmentIndex]
 
+        let heightText = heightField.text ?? "0"
+        let height = Double(heightText) ?? 0
+
         let athlete = Athlete(
             firstName: firstName.trimmingCharacters(in: .whitespaces),
             lastName: lastName,
             event: selectedEvent,
-            speed: 0,
-            stamina: 0,
-            strength: 0
+            height: height
         )
 
         AthleteStore.shared.add(athlete)
