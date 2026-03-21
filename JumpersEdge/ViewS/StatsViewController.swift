@@ -69,7 +69,6 @@ class StatsViewController: UIViewController,
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let detailVC = AthleteDetailViewController()
         detailVC.athlete = athletes[indexPath.item]
-        detailVC.athleteIndex = indexPath.item
         navigationController?.pushViewController(detailVC, animated: true)
     }
 

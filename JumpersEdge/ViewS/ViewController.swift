@@ -6,14 +6,11 @@
 //
 
 import UIKit
-import UniformTypeIdentifiers
 import AVFoundation
 
-class ViewController: UIViewController,
-                      UIImagePickerControllerDelegate,
-                      UINavigationControllerDelegate {
+class ViewController: UIViewController {
 
-    private var selectedAthleteIndex: Int?
+    private var selectedAthleteID: UUID?
     private let analyzer = VideoAnalyzer()
 
     override func viewDidLoad() {
@@ -31,7 +28,16 @@ class ViewController: UIViewController,
     @IBAction func recordJumpButtonTapped(_ sender: UIButton) {
         let athletes = AthleteStore.shared.athletes
         guard !athletes.isEmpty else {
-            showAlert("No athletes available. Please add an athlete first.")
+            let alert = UIAlertController(
+                title: "No Athletes",
+                message: "Please add an athlete before recording a jump.",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "Add Athlete", style: .default) { [weak self] _ in
+                self?.performSegue(withIdentifier: "goToAddAthlete", sender: self)
+            })
+            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+            present(alert, animated: true)
             return
         }
 
@@ -41,9 +47,9 @@ class ViewController: UIViewController,
             preferredStyle: .actionSheet
         )
 
-        for (index, athlete) in athletes.enumerated() {
+        for athlete in athletes {
             sheet.addAction(UIAlertAction(title: athlete.name, style: .default) { [weak self] _ in
-                self?.selectedAthleteIndex = index
+                self?.selectedAthleteID = athlete.id
                 self?.presentCamera()
             })
         }
@@ -61,63 +67,24 @@ class ViewController: UIViewController,
     // MARK: - Camera
 
     private func presentCamera() {
-        guard UIImagePickerController.isSourceTypeAvailable(.camera) else {
-            showAlert("Camera is not available on this device.")
-            return
+        let cameraVC = CameraViewController()
+        cameraVC.modalPresentationStyle = .fullScreen
+        cameraVC.onVideoRecorded = { [weak self] url in
+            guard let self, let athleteID = self.selectedAthleteID else { return }
+            self.selectedAthleteID = nil
+            self.handleRecordedVideo(at: url, forAthleteID: athleteID)
         }
-
-        let picker = UIImagePickerController()
-        picker.sourceType = .camera
-        picker.mediaTypes = [UTType.movie.identifier]
-        picker.videoMaximumDuration = 60
-        picker.videoQuality = .typeMedium
-        picker.delegate = self
-        present(picker, animated: true)
+        present(cameraVC, animated: true)
     }
 
-    // MARK: - UIImagePickerControllerDelegate
-
-    func imagePickerController(_ picker: UIImagePickerController,
-                               didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
-        picker.dismiss(animated: true)
-
-        guard let videoURL = info[.mediaURL] as? URL,
-              let athleteIndex = selectedAthleteIndex else { return }
-
-        let fileManager = FileManager.default
-        let documentsDir = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
-        let jumpVideosDir = documentsDir.appendingPathComponent("JumpVideos", isDirectory: true)
-
-        if !fileManager.fileExists(atPath: jumpVideosDir.path) {
-            try? fileManager.createDirectory(at: jumpVideosDir, withIntermediateDirectories: true)
-        }
-
-        let timestamp = Int(Date().timeIntervalSince1970)
-        let fileName = "jump_\(timestamp).mov"
-        let destinationURL = jumpVideosDir.appendingPathComponent(fileName)
-
-        do {
-            try fileManager.moveItem(at: videoURL, to: destinationURL)
-            AthleteStore.shared.addVideo(destinationURL, toAthleteAt: athleteIndex)
-
-            // Trigger Vision analysis
-            let athlete = AthleteStore.shared.athletes[athleteIndex]
-            analyzeVideo(at: destinationURL, forAthleteAt: athleteIndex, athleteHeight: athlete.height)
-        } catch {
-            showAlert("Failed to save video: \(error.localizedDescription)")
-        }
-
-        selectedAthleteIndex = nil
-    }
-
-    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
-        picker.dismiss(animated: true)
-        selectedAthleteIndex = nil
+    private func handleRecordedVideo(at videoURL: URL, forAthleteID athleteID: UUID) {
+        guard let athlete = AthleteStore.shared.athletes.first(where: { $0.id == athleteID }) else { return }
+        analyzeVideo(at: videoURL, forAthleteID: athleteID, athleteHeight: athlete.height)
     }
 
     // MARK: - Video Analysis
 
-    private func analyzeVideo(at url: URL, forAthleteAt index: Int, athleteHeight: Double) {
+    private func analyzeVideo(at url: URL, forAthleteID athleteID: UUID, athleteHeight: Double) {
         let progressAlert = UIAlertController(
             title: "Analyzing Jump",
             message: "Processing video...\n\n",
@@ -137,22 +104,30 @@ class ViewController: UIViewController,
         present(progressAlert, animated: true)
 
         analyzer.analyze(videoURL: url, athleteHeight: athleteHeight, progress: { value in
-            progressView.setProgress(value, animated: true)
+            DispatchQueue.main.async {
+                progressView.setProgress(value, animated: true)
+            }
         }) { [weak self] result in
-            progressAlert.dismiss(animated: true) {
-                switch result {
-                case .success(let analysis):
-                    AthleteStore.shared.addJumpAnalysis(analysis, toAthleteAt: index)
-                    let athleteName = AthleteStore.shared.athletes[index].name
-                    let message = String(
-                        format: "Analysis complete for %@!\nApproach Speed: %.1f m/s\nAir Time: %.2f s\nTakeoff Angle: %.1f\u{00B0}",
-                        athleteName, analysis.approachSpeed, analysis.airTime, analysis.takeoffAngle
-                    )
-                    self?.showAlert(message)
+            DispatchQueue.main.async {
+                progressAlert.dismiss(animated: true) {
+                    let athleteName = AthleteStore.shared.athletes.first(where: { $0.id == athleteID })?.name ?? "Athlete"
+                    switch result {
+                    case .success(let analysis):
+                        AthleteStore.shared.addVideo(url, toAthleteID: athleteID)
+                        AthleteStore.shared.addJumpAnalysis(analysis, toAthleteID: athleteID)
+                        let strideLengthText = analysis.strideLength > 0
+                            ? String(format: "%.2f m", analysis.strideLength)
+                            : "—"
+                        let message = String(
+                            format: "Analysis complete for %@!\nApproach Speed: %.1f m/s\nAir Time: %.2f s\nStride Length: %@",
+                            athleteName, analysis.approachSpeed, analysis.airTime, strideLengthText
+                        )
+                        self?.showAlert(message)
 
-                case .failure(let error):
-                    let athleteName = AthleteStore.shared.athletes[index].name
-                    self?.showAlert("Video saved for \(athleteName), but analysis failed: \(error.localizedDescription)")
+                    case .failure(let error):
+                        try? FileManager.default.removeItem(at: url)
+                        self?.showAlert("Analysis failed for \(athleteName): \(error.localizedDescription)")
+                    }
                 }
             }
         }

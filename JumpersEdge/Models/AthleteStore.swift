@@ -20,11 +20,16 @@ class AthleteStore {
         do {
             let entities = try context.fetch(request)
             return entities.map { entity in
+                // Backfill UUID for athletes created before V3 migration
+                if entity.id == nil {
+                    entity.id = UUID()
+                    CoreDataStack.shared.saveContext()
+                }
+
                 let event = JumpEvent(rawValue: entity.event ?? "Long Jump") ?? .longJump
                 let videoPaths = entity.videoURLsData as? [String] ?? []
                 let videoURLs = videoPaths.map { URL(fileURLWithPath: $0) }
 
-                // Convert JumpAnalysisEntity set to [JumpAnalysis]
                 let analysisEntities = entity.jumpAnalyses?.allObjects as? [JumpAnalysisEntity] ?? []
                 let analyses = analysisEntities
                     .sorted { ($0.date ?? .distantPast) < ($1.date ?? .distantPast) }
@@ -32,7 +37,7 @@ class AthleteStore {
                         JumpAnalysis(
                             id: ae.id ?? UUID(),
                             approachSpeed: ae.approachSpeed,
-                            takeoffAngle: ae.takeoffAngle,
+                            strideLength: ae.strideLength,
                             airTime: ae.airTime,
                             date: ae.date ?? Date(),
                             videoURL: URL(fileURLWithPath: ae.videoPath ?? "")
@@ -40,6 +45,7 @@ class AthleteStore {
                     }
 
                 return Athlete(
+                    id: entity.id!,
                     firstName: entity.firstName ?? "",
                     lastName: entity.lastName ?? "",
                     event: event,
@@ -58,8 +64,11 @@ class AthleteStore {
         seedIfNeeded()
     }
 
+    // MARK: - CRUD
+
     func add(_ athlete: Athlete) {
         let entity = AthleteEntity(context: context)
+        entity.id = athlete.id
         entity.firstName = athlete.firstName
         entity.lastName = athlete.lastName
         entity.event = athlete.event.rawValue
@@ -69,103 +78,66 @@ class AthleteStore {
         CoreDataStack.shared.saveContext()
     }
 
-    func update(_ athlete: Athlete, at index: Int) {
-        let request: NSFetchRequest<AthleteEntity> = AthleteEntity.fetchRequest()
-        request.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: true)]
-
-        do {
-            let entities = try context.fetch(request)
-            guard entities.indices.contains(index) else { return }
-            let entity = entities[index]
-            entity.firstName = athlete.firstName
-            entity.lastName = athlete.lastName
-            entity.event = athlete.event.rawValue
-            entity.height = athlete.height
-            entity.videoURLsData = athlete.videoURLs.map { $0.path }
-            CoreDataStack.shared.saveContext()
-        } catch {
-            print("Failed to update athlete: \(error.localizedDescription)")
-        }
+    func update(_ athlete: Athlete) {
+        guard let entity = entity(for: athlete.id) else { return }
+        entity.firstName = athlete.firstName
+        entity.lastName = athlete.lastName
+        entity.event = athlete.event.rawValue
+        entity.height = athlete.height
+        entity.videoURLsData = athlete.videoURLs.map { $0.path }
+        CoreDataStack.shared.saveContext()
     }
 
-    func delete(at index: Int) {
-        let request: NSFetchRequest<AthleteEntity> = AthleteEntity.fetchRequest()
-        request.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: true)]
+    func delete(id athleteID: UUID) {
+        guard let entity = entity(for: athleteID) else { return }
 
-        do {
-            let entities = try context.fetch(request)
-            guard entities.indices.contains(index) else { return }
-            let entity = entities[index]
+        let videoPaths = entity.videoURLsData as? [String] ?? []
+        let fileManager = FileManager.default
+        for path in videoPaths {
+            try? fileManager.removeItem(atPath: path)
+        }
 
-            // Delete video files from legacy videoURLsData
-            let videoPaths = entity.videoURLsData as? [String] ?? []
-            let fileManager = FileManager.default
-            for path in videoPaths {
+        let analyses = entity.jumpAnalyses?.allObjects as? [JumpAnalysisEntity] ?? []
+        for analysis in analyses {
+            if let path = analysis.videoPath {
                 try? fileManager.removeItem(atPath: path)
             }
-
-            // Delete video files referenced by JumpAnalysisEntity records
-            // (The entities themselves are cascade-deleted by Core Data)
-            let analyses = entity.jumpAnalyses?.allObjects as? [JumpAnalysisEntity] ?? []
-            for analysis in analyses {
-                if let path = analysis.videoPath {
-                    try? fileManager.removeItem(atPath: path)
-                }
-            }
-
-            context.delete(entity)
-            CoreDataStack.shared.saveContext()
-        } catch {
-            print("Failed to delete athlete: \(error.localizedDescription)")
         }
+
+        context.delete(entity)
+        CoreDataStack.shared.saveContext()
     }
 
-    func addVideo(_ url: URL, toAthleteAt index: Int) {
-        let request: NSFetchRequest<AthleteEntity> = AthleteEntity.fetchRequest()
-        request.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: true)]
+    // MARK: - Video
 
-        do {
-            let entities = try context.fetch(request)
-            guard entities.indices.contains(index) else { return }
-            let entity = entities[index]
-            var paths = entity.videoURLsData as? [String] ?? []
-            paths.append(url.path)
-            entity.videoURLsData = paths
-            CoreDataStack.shared.saveContext()
-        } catch {
-            print("Failed to add video: \(error.localizedDescription)")
-        }
+    func addVideo(_ url: URL, toAthleteID athleteID: UUID) {
+        guard let entity = entity(for: athleteID) else { return }
+        var paths = entity.videoURLsData as? [String] ?? []
+        paths.append(url.path)
+        entity.videoURLsData = paths
+        CoreDataStack.shared.saveContext()
     }
 
     // MARK: - Jump Analysis
 
-    func addJumpAnalysis(_ analysis: JumpAnalysis, toAthleteAt index: Int) {
-        let request: NSFetchRequest<AthleteEntity> = AthleteEntity.fetchRequest()
-        request.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: true)]
+    func addJumpAnalysis(_ analysis: JumpAnalysis, toAthleteID athleteID: UUID) {
+        guard let athleteEntity = entity(for: athleteID) else { return }
 
-        do {
-            let entities = try context.fetch(request)
-            guard entities.indices.contains(index) else { return }
-            let athleteEntity = entities[index]
+        let analysisEntity = JumpAnalysisEntity(context: context)
+        analysisEntity.id = analysis.id
+        analysisEntity.approachSpeed = analysis.approachSpeed
+        analysisEntity.strideLength = analysis.strideLength
+        analysisEntity.airTime = analysis.airTime
+        analysisEntity.date = analysis.date
+        analysisEntity.videoPath = analysis.videoURL.path
+        analysisEntity.athlete = athleteEntity
 
-            let analysisEntity = JumpAnalysisEntity(context: context)
-            analysisEntity.id = analysis.id
-            analysisEntity.approachSpeed = analysis.approachSpeed
-            analysisEntity.takeoffAngle = analysis.takeoffAngle
-            analysisEntity.airTime = analysis.airTime
-            analysisEntity.date = analysis.date
-            analysisEntity.videoPath = analysis.videoURL.path
-            analysisEntity.athlete = athleteEntity
-
-            CoreDataStack.shared.saveContext()
-        } catch {
-            print("Failed to add jump analysis: \(error.localizedDescription)")
-        }
+        CoreDataStack.shared.saveContext()
     }
 
-    func deleteJumpAnalysis(id: UUID, fromAthleteAt index: Int) {
+    func deleteJumpAnalysis(id analysisID: UUID) {
         let request: NSFetchRequest<JumpAnalysisEntity> = JumpAnalysisEntity.fetchRequest()
-        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        request.predicate = NSPredicate(format: "id == %@", analysisID as CVarArg)
 
         do {
             let results = try context.fetch(request)
@@ -179,6 +151,15 @@ class AthleteStore {
         } catch {
             print("Failed to delete jump analysis: \(error.localizedDescription)")
         }
+    }
+
+    // MARK: - Private
+
+    private func entity(for athleteID: UUID) -> AthleteEntity? {
+        let request: NSFetchRequest<AthleteEntity> = AthleteEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", athleteID as CVarArg)
+        request.fetchLimit = 1
+        return try? context.fetch(request).first
     }
 
     // MARK: - Seed Data

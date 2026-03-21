@@ -14,12 +14,29 @@ enum JumpEvent: String, CaseIterable {
 }
 
 struct Athlete {
+    let id: UUID
     let firstName: String
     let lastName: String
     let event: JumpEvent
     let height: Double              // meters (e.g. 1.83)
     var jumpAnalyses: [JumpAnalysis] = []
     var videoURLs: [URL] = []
+
+    init(id: UUID = UUID(),
+         firstName: String,
+         lastName: String,
+         event: JumpEvent,
+         height: Double,
+         jumpAnalyses: [JumpAnalysis] = [],
+         videoURLs: [URL] = []) {
+        self.id = id
+        self.firstName = firstName
+        self.lastName = lastName
+        self.event = event
+        self.height = height
+        self.jumpAnalyses = jumpAnalyses
+        self.videoURLs = videoURLs
+    }
 
     var name: String {
         if lastName.isEmpty {
@@ -44,9 +61,11 @@ struct Athlete {
         return jumpAnalyses.map(\.airTime).reduce(0, +) / Double(jumpAnalyses.count)
     }
 
-    var averageTakeoffAngle: Double? {
-        guard !jumpAnalyses.isEmpty else { return nil }
-        return jumpAnalyses.map(\.takeoffAngle).reduce(0, +) / Double(jumpAnalyses.count)
+    var averageStrideLength: Double? {
+        // Exclude 0.0 values — they represent undetectable strides, not actual zero-length strides
+        let valid = jumpAnalyses.filter { $0.strideLength > 0 }
+        guard !valid.isEmpty else { return nil }
+        return valid.map(\.strideLength).reduce(0, +) / Double(valid.count)
     }
 
     /// Consistency score: 0.0 to 1.0.

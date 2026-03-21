@@ -11,7 +11,6 @@ import AVKit
 class AthleteDetailViewController: UIViewController {
 
     var athlete: Athlete!
-    var athleteIndex: Int!
 
     private let scrollView = UIScrollView()
     private let contentStack = UIStackView()
@@ -137,7 +136,7 @@ class AthleteDetailViewController: UIViewController {
         let stats: [(String, String)] = [
             ("Avg Approach Speed", formatOptional(athlete.averageApproachSpeed, format: "%.1f m/s")),
             ("Avg Air Time", formatOptional(athlete.averageAirTime, format: "%.2f s")),
-            ("Avg Takeoff Angle", formatOptional(athlete.averageTakeoffAngle, format: "%.1f\u{00B0}")),
+            ("Avg Stride Length", formatOptional(athlete.averageStrideLength, format: "%.2f m")),
             ("Consistency", formatOptional(athlete.consistencyScore.map { $0 * 10 }, format: "%.1f / 10")),
             ("Total Jumps", "\(athlete.jumpCount)"),
         ]
@@ -246,7 +245,7 @@ class AthleteDetailViewController: UIViewController {
         let metrics: [(String, String)] = [
             ("Approach Speed", String(format: "%.1f m/s", analysis.approachSpeed)),
             ("Air Time", String(format: "%.2f s", analysis.airTime)),
-            ("Takeoff Angle", String(format: "%.1f\u{00B0}", analysis.takeoffAngle)),
+            ("Stride Length", analysis.strideLength > 0 ? String(format: "%.2f m", analysis.strideLength) : "—"),
         ]
 
         for (name, value) in metrics {
@@ -345,6 +344,7 @@ class AthleteDetailViewController: UIViewController {
         let height = Double(heightText) ?? 0
 
         let updated = Athlete(
+            id: athlete.id,
             firstName: firstName.trimmingCharacters(in: .whitespaces),
             lastName: lastName,
             event: selectedEvent,
@@ -353,7 +353,7 @@ class AthleteDetailViewController: UIViewController {
             videoURLs: athlete.videoURLs
         )
 
-        AthleteStore.shared.update(updated, at: athleteIndex)
+        AthleteStore.shared.update(updated)
         navigationController?.popViewController(animated: true)
     }
 
@@ -369,7 +369,7 @@ class AthleteDetailViewController: UIViewController {
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         alert.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
             guard let self = self else { return }
-            AthleteStore.shared.delete(at: self.athleteIndex)
+            AthleteStore.shared.delete(id: self.athlete.id)
             self.navigationController?.popViewController(animated: true)
         })
 
