@@ -265,10 +265,10 @@ class CameraViewController: UIViewController {
     @objc private func orientationChanged() {
         guard let connection = previewLayer?.connection else { return }
         switch UIDevice.current.orientation {
-        case .landscapeLeft:       connection.videoOrientation = .landscapeRight
-        case .landscapeRight:      connection.videoOrientation = .landscapeLeft
-        case .portrait:            connection.videoOrientation = .portrait
-        case .portraitUpsideDown:  connection.videoOrientation = .portraitUpsideDown
+        case .landscapeLeft:       connection.videoRotationAngle = 0
+        case .landscapeRight:      connection.videoRotationAngle = 180
+        case .portrait:            connection.videoRotationAngle = 90
+        case .portraitUpsideDown:  connection.videoRotationAngle = 270
         default: break
         }
     }

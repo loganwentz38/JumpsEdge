@@ -13,7 +13,7 @@ struct JumpAnalysis: Sendable {
     let date: Date
     let videoURL: URL
 
-    init(id: UUID = UUID(),
+    nonisolated init(id: UUID = UUID(),
          approachSpeed: Double,
          strideLength: Double,
          airTime: Double,

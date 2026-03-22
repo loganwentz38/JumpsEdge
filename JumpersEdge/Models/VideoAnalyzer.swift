@@ -40,8 +40,8 @@ nonisolated class VideoAnalyzer {
                  progress: @escaping ProgressHandler,
                  completion: @escaping CompletionHandler) {
 
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            self?.performAnalysis(
+        Task.detached(priority: .userInitiated) { [weak self] in
+            await self?.performAnalysis(
                 videoURL: videoURL,
                 athleteHeight: athleteHeight,
                 progress: progress,
@@ -68,22 +68,22 @@ nonisolated class VideoAnalyzer {
     private func performAnalysis(videoURL: URL,
                                  athleteHeight: Double,
                                  progress: @escaping ProgressHandler,
-                                 completion: @escaping CompletionHandler) {
+                                 completion: @escaping CompletionHandler) async {
 
-        let asset = AVAsset(url: videoURL)
+        let asset = AVURLAsset(url: videoURL)
 
-        guard let videoTrack = asset.tracks(withMediaType: .video).first else {
+        guard let videoTrack = try? await asset.loadTracks(withMediaType: .video).first else {
             DispatchQueue.main.async { completion(.failure(VideoAnalysisError.noVideoTrack)) }
             return
         }
 
-        let fps = videoTrack.nominalFrameRate
+        let fps = (try? await videoTrack.load(.nominalFrameRate)) ?? 0
         guard fps > 0 else {
             DispatchQueue.main.async { completion(.failure(VideoAnalysisError.cannotReadAsset)) }
             return
         }
 
-        let duration = CMTimeGetSeconds(asset.duration)
+        let duration = CMTimeGetSeconds((try? await asset.load(.duration)) ?? .zero)
         // fps used here only for the estimated frame count used in progress reporting
         let estimatedFrameCount = Int(duration * Double(fps))
         guard estimatedFrameCount > 10 else {
