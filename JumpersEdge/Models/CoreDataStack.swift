@@ -27,6 +27,16 @@ class CoreDataStack {
             }
         }
         persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
+
+        // Post-migration cleanup: any rows that held a takeoffAngle value (0–90°)
+        // now live in the strideLength column. Valid stride lengths are 0–3.5m, so
+        // clamp anything implausibly large (>10.0) to 0.0 to mark it as undetectable.
+        let context = persistentContainer.viewContext
+        let batchUpdate = NSBatchUpdateRequest(entityName: "JumpAnalysisEntity")
+        batchUpdate.predicate = NSPredicate(format: "strideLength > 10.0")
+        batchUpdate.propertiesToUpdate = ["strideLength": 0.0]
+        batchUpdate.resultType = .updatedObjectIDsResultType
+        _ = try? context.execute(batchUpdate)
     }
 
     var context: NSManagedObjectContext {
