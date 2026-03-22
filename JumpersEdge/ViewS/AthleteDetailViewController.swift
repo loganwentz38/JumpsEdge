@@ -278,18 +278,18 @@ class AthleteDetailViewController: UIViewController {
             stack.addArrangedSubview(playButton)
 
             // Store the URL so we can retrieve it on tap
-            objc_setAssociatedObject(playButton, &AssociatedKeys.videoURL, analysis.videoURL, .OBJC_ASSOCIATION_RETAIN)
+            objc_setAssociatedObject(playButton, AssociatedKeys.videoURL, analysis.videoURL, .OBJC_ASSOCIATION_RETAIN)
         }
 
         return card
     }
 
-    private struct AssociatedKeys {
-        static var videoURL = "videoURL"
+    private enum AssociatedKeys {
+        nonisolated(unsafe) static let videoURL = malloc(1)!
     }
 
     @objc private func playVideoTapped(_ sender: UIButton) {
-        guard let url = objc_getAssociatedObject(sender, &AssociatedKeys.videoURL) as? URL else { return }
+        guard let url = objc_getAssociatedObject(sender, AssociatedKeys.videoURL) as? URL else { return }
         let player = AVPlayer(url: url)
         let playerVC = AVPlayerViewController()
         playerVC.player = player

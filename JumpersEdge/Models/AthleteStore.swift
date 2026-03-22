@@ -27,7 +27,7 @@ class AthleteStore {
                 }
 
                 let event = JumpEvent(rawValue: entity.event ?? "Long Jump") ?? .longJump
-                let videoPaths = entity.videoURLsData as? [String] ?? []
+                let videoPaths = entity.videoURLsData ?? []
                 let videoURLs = videoPaths.map { URL(fileURLWithPath: $0) }
 
                 let analysisEntities = entity.jumpAnalyses?.allObjects as? [JumpAnalysisEntity] ?? []
@@ -91,7 +91,7 @@ class AthleteStore {
     func delete(id athleteID: UUID) {
         guard let entity = entity(for: athleteID) else { return }
 
-        let videoPaths = entity.videoURLsData as? [String] ?? []
+        let videoPaths = entity.videoURLsData ?? []
         let fileManager = FileManager.default
         for path in videoPaths {
             try? fileManager.removeItem(atPath: path)
@@ -112,7 +112,7 @@ class AthleteStore {
 
     func addVideo(_ url: URL, toAthleteID athleteID: UUID) {
         guard let entity = entity(for: athleteID) else { return }
-        var paths = entity.videoURLsData as? [String] ?? []
+        var paths = entity.videoURLsData ?? []
         paths.append(url.path)
         entity.videoURLsData = paths
         CoreDataStack.shared.saveContext()
