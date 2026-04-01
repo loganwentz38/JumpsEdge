@@ -32,12 +32,12 @@ class StatCell: UICollectionViewCell {
     // MARK: - Card Setup
 
     private func setupCard() {
-        contentView.backgroundColor = .systemBackground
+        contentView.backgroundColor = AppColors.surfaceContainer
         contentView.layer.cornerRadius = 14
         contentView.layer.masksToBounds = true
 
         layer.shadowColor = UIColor.black.cgColor
-        layer.shadowOpacity = 0.08
+        layer.shadowOpacity = 0.25
         layer.shadowOffset = CGSize(width: 0, height: 2)
         layer.shadowRadius = 6
         layer.masksToBounds = false
@@ -49,13 +49,13 @@ class StatCell: UICollectionViewCell {
     }
 
     private func setupAvatar() {
-        avatarView.backgroundColor = .systemBlue
+        avatarView.backgroundColor = AppColors.primaryContainer
         avatarView.layer.cornerRadius = 22
         avatarView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(avatarView)
 
         initialLabel.font = .systemFont(ofSize: 18, weight: .bold)
-        initialLabel.textColor = .white
+        initialLabel.textColor = AppColors.onPrimaryFixed
         initialLabel.textAlignment = .center
         initialLabel.translatesAutoresizingMaskIntoConstraints = false
         avatarView.addSubview(initialLabel)
@@ -73,7 +73,7 @@ class StatCell: UICollectionViewCell {
 
     private func setupNameLabel() {
         athleteNameLabel.font = .systemFont(ofSize: 15, weight: .semibold)
-        athleteNameLabel.textColor = .label
+        athleteNameLabel.textColor = AppColors.onSurface
         athleteNameLabel.textAlignment = .center
         athleteNameLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(athleteNameLabel)
@@ -86,7 +86,7 @@ class StatCell: UICollectionViewCell {
     }
 
     private func setupDivider() {
-        divider.backgroundColor = .separator
+        divider.backgroundColor = AppColors.surfaceContainerHigh
         divider.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(divider)
 
@@ -94,16 +94,16 @@ class StatCell: UICollectionViewCell {
             divider.topAnchor.constraint(equalTo: athleteNameLabel.bottomAnchor, constant: 10),
             divider.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 12),
             divider.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -12),
-            divider.heightAnchor.constraint(equalToConstant: 0.5),
+            divider.heightAnchor.constraint(equalToConstant: 1),
         ])
     }
 
     private func setupStatRows() {
         let stats: [(String, UIColor)] = [
-            ("Avg Speed", .systemBlue),
-            ("Avg Air", .systemGreen),
-            ("Jumps", .systemOrange),
-            ("Consist.", .systemPurple),
+            ("Avg Speed", AppColors.primaryContainer),
+            ("Avg Air",   AppColors.secondary),
+            ("Jumps",     AppColors.error),
+            ("Consist.",  AppColors.outline),
         ]
 
         var lastAnchor = divider.bottomAnchor
@@ -127,20 +127,20 @@ class StatCell: UICollectionViewCell {
         let nameLabel = UILabel()
         nameLabel.text = name
         nameLabel.font = .systemFont(ofSize: 11, weight: .medium)
-        nameLabel.textColor = .secondaryLabel
+        nameLabel.textColor = AppColors.onSurfaceVariant
         nameLabel.setContentHuggingPriority(.required, for: .horizontal)
         nameLabel.widthAnchor.constraint(equalToConstant: 56).isActive = true
 
         let progress = UIProgressView(progressViewStyle: .bar)
         progress.tintColor = color
-        progress.trackTintColor = UIColor.systemFill
+        progress.trackTintColor = AppColors.outlineVariant
         progress.layer.cornerRadius = 2
         progress.layer.masksToBounds = true
         progressBars.append(progress)
 
         let valueLabel = UILabel()
         valueLabel.font = .systemFont(ofSize: 12, weight: .bold)
-        valueLabel.textColor = .label
+        valueLabel.textColor = AppColors.onSurface
         valueLabel.textAlignment = .right
         valueLabel.setContentHuggingPriority(.required, for: .horizontal)
         valueLabel.widthAnchor.constraint(equalToConstant: 28).isActive = true

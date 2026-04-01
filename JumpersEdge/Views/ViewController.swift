@@ -92,6 +92,8 @@ class ViewController: UIViewController {
         )
 
         let progressView = UIProgressView(progressViewStyle: .bar)
+        progressView.progressTintColor = AppColors.primaryContainer
+        progressView.trackTintColor = AppColors.outlineVariant
         progressView.translatesAutoresizingMaskIntoConstraints = false
         progressAlert.view.addSubview(progressView)
 

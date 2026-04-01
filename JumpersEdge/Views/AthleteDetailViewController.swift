@@ -26,7 +26,7 @@ class AthleteDetailViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Edit Athlete"
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = AppColors.surface
         setupScrollView()
         setupForm()
         populateFields()
@@ -73,6 +73,10 @@ class AthleteDetailViewController: UIViewController {
 
         // Event
         contentStack.addArrangedSubview(makeLabel("Event"))
+        eventSegment.backgroundColor = AppColors.surfaceContainerHigh
+        eventSegment.selectedSegmentTintColor = AppColors.primaryContainer
+        eventSegment.setTitleTextAttributes([.foregroundColor: AppColors.onSurface], for: .normal)
+        eventSegment.setTitleTextAttributes([.foregroundColor: AppColors.onPrimaryFixed], for: .selected)
         contentStack.addArrangedSubview(eventSegment)
 
         // Height
@@ -97,8 +101,8 @@ class AthleteDetailViewController: UIViewController {
         // Save Button
         saveButton.setTitle("Save Changes", for: .normal)
         saveButton.titleLabel?.font = .systemFont(ofSize: 18, weight: .semibold)
-        saveButton.backgroundColor = .systemBlue
-        saveButton.setTitleColor(.white, for: .normal)
+        saveButton.backgroundColor = AppColors.primaryContainer
+        saveButton.setTitleColor(AppColors.onPrimaryFixed, for: .normal)
         saveButton.layer.cornerRadius = 10
         saveButton.heightAnchor.constraint(equalToConstant: 50).isActive = true
         saveButton.addTarget(self, action: #selector(saveTapped), for: .touchUpInside)
@@ -107,8 +111,8 @@ class AthleteDetailViewController: UIViewController {
         // Delete Button
         deleteButton.setTitle("Delete Athlete", for: .normal)
         deleteButton.titleLabel?.font = .systemFont(ofSize: 18, weight: .semibold)
-        deleteButton.backgroundColor = .systemRed
-        deleteButton.setTitleColor(.white, for: .normal)
+        deleteButton.backgroundColor = AppColors.error
+        deleteButton.setTitleColor(AppColors.onSurface, for: .normal)
         deleteButton.layer.cornerRadius = 10
         deleteButton.heightAnchor.constraint(equalToConstant: 50).isActive = true
         deleteButton.addTarget(self, action: #selector(deleteTapped), for: .touchUpInside)
@@ -150,12 +154,12 @@ class AthleteDetailViewController: UIViewController {
             let nameLabel = UILabel()
             nameLabel.text = label
             nameLabel.font = .systemFont(ofSize: 15, weight: .medium)
-            nameLabel.textColor = .secondaryLabel
+            nameLabel.textColor = AppColors.onSurfaceVariant
 
             let valueLabel = UILabel()
             valueLabel.text = value
             valueLabel.font = .systemFont(ofSize: 15, weight: .semibold)
-            valueLabel.textColor = .label
+            valueLabel.textColor = AppColors.onSurface
             valueLabel.textAlignment = .right
 
             row.addArrangedSubview(nameLabel)
@@ -167,7 +171,7 @@ class AthleteDetailViewController: UIViewController {
             let emptyLabel = UILabel()
             emptyLabel.text = "No jumps recorded yet. Record a jump to see statistics."
             emptyLabel.font = .systemFont(ofSize: 14)
-            emptyLabel.textColor = .tertiaryLabel
+            emptyLabel.textColor = AppColors.outlineVariant
             emptyLabel.numberOfLines = 0
             emptyLabel.textAlignment = .center
             stack.addArrangedSubview(emptyLabel)
@@ -187,7 +191,7 @@ class AthleteDetailViewController: UIViewController {
             let emptyLabel = UILabel()
             emptyLabel.text = "No jumps recorded yet."
             emptyLabel.font = .systemFont(ofSize: 14)
-            emptyLabel.textColor = .tertiaryLabel
+            emptyLabel.textColor = AppColors.outlineVariant
             emptyLabel.textAlignment = .center
             stack.addArrangedSubview(emptyLabel)
             return stack
@@ -207,7 +211,7 @@ class AthleteDetailViewController: UIViewController {
 
     private func makeJumpCard(analysis: JumpAnalysis, number: Int, dateFormatter: DateFormatter) -> UIView {
         let card = UIView()
-        card.backgroundColor = .secondarySystemBackground
+        card.backgroundColor = AppColors.surfaceContainerHigh
         card.layer.cornerRadius = 10
 
         let stack = UIStackView()
@@ -231,12 +235,12 @@ class AthleteDetailViewController: UIViewController {
         let titleLabel = UILabel()
         titleLabel.text = "Jump #\(number)"
         titleLabel.font = .systemFont(ofSize: 14, weight: .bold)
-        titleLabel.textColor = .label
+        titleLabel.textColor = AppColors.onSurface
 
         let dateLabel = UILabel()
         dateLabel.text = dateFormatter.string(from: analysis.date)
         dateLabel.font = .systemFont(ofSize: 12)
-        dateLabel.textColor = .secondaryLabel
+        dateLabel.textColor = AppColors.onSurfaceVariant
 
         headerRow.addArrangedSubview(titleLabel)
         headerRow.addArrangedSubview(dateLabel)
@@ -257,12 +261,12 @@ class AthleteDetailViewController: UIViewController {
             let nameLabel = UILabel()
             nameLabel.text = name
             nameLabel.font = .systemFont(ofSize: 13)
-            nameLabel.textColor = .secondaryLabel
+            nameLabel.textColor = AppColors.onSurfaceVariant
 
             let valueLabel = UILabel()
             valueLabel.text = value
             valueLabel.font = .systemFont(ofSize: 13, weight: .semibold)
-            valueLabel.textColor = .label
+            valueLabel.textColor = AppColors.onSurface
 
             row.addArrangedSubview(nameLabel)
             row.addArrangedSubview(valueLabel)
@@ -305,7 +309,7 @@ class AthleteDetailViewController: UIViewController {
         let label = UILabel()
         label.text = text
         label.font = .systemFont(ofSize: 16, weight: .medium)
-        label.textColor = .label
+        label.textColor = AppColors.onSurface
         return label
     }
 
@@ -313,14 +317,22 @@ class AthleteDetailViewController: UIViewController {
         let label = UILabel()
         label.text = text
         label.font = .systemFont(ofSize: 20, weight: .bold)
-        label.textColor = .label
+        label.textColor = AppColors.onSurface
         return label
     }
 
     private func styleTextField(_ field: UITextField, placeholder: String) {
-        field.placeholder = placeholder
-        field.borderStyle = .roundedRect
+        field.attributedPlaceholder = NSAttributedString(
+            string: placeholder,
+            attributes: [.foregroundColor: AppColors.onSurfaceVariant]
+        )
+        field.borderStyle = .none
+        field.backgroundColor = AppColors.surfaceContainerHighest
+        field.textColor = AppColors.onSurface
         field.font = .systemFont(ofSize: 16)
+        field.layer.cornerRadius = 8
+        field.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 12, height: 0))
+        field.leftViewMode = .always
         field.heightAnchor.constraint(equalToConstant: 44).isActive = true
     }
 

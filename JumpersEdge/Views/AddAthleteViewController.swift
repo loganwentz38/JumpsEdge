@@ -18,7 +18,7 @@ class AddAthleteViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Add Athlete"
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = AppColors.surface
         setupForm()
     }
 
@@ -50,6 +50,10 @@ class AddAthleteViewController: UIViewController {
         // Event
         let eventLabel = makeLabel("Event")
         eventSegment.selectedSegmentIndex = 0
+        eventSegment.backgroundColor = AppColors.surfaceContainerHigh
+        eventSegment.selectedSegmentTintColor = AppColors.primaryContainer
+        eventSegment.setTitleTextAttributes([.foregroundColor: AppColors.onSurface], for: .normal)
+        eventSegment.setTitleTextAttributes([.foregroundColor: AppColors.onPrimaryFixed], for: .selected)
 
         // Height
         let heightLabel = makeLabel("Height (meters)")
@@ -59,8 +63,8 @@ class AddAthleteViewController: UIViewController {
         // Save Button
         saveButton.setTitle("Save Athlete", for: .normal)
         saveButton.titleLabel?.font = .systemFont(ofSize: 18, weight: .semibold)
-        saveButton.backgroundColor = .systemBlue
-        saveButton.setTitleColor(.white, for: .normal)
+        saveButton.backgroundColor = AppColors.primaryContainer
+        saveButton.setTitleColor(AppColors.onPrimaryFixed, for: .normal)
         saveButton.layer.cornerRadius = 10
         saveButton.heightAnchor.constraint(equalToConstant: 50).isActive = true
         saveButton.addTarget(self, action: #selector(saveTapped), for: .touchUpInside)
@@ -86,14 +90,22 @@ class AddAthleteViewController: UIViewController {
         let label = UILabel()
         label.text = text
         label.font = .systemFont(ofSize: 16, weight: .medium)
-        label.textColor = .label
+        label.textColor = AppColors.onSurface
         return label
     }
 
     private func styleTextField(_ field: UITextField, placeholder: String) {
-        field.placeholder = placeholder
-        field.borderStyle = .roundedRect
+        field.attributedPlaceholder = NSAttributedString(
+            string: placeholder,
+            attributes: [.foregroundColor: AppColors.onSurfaceVariant]
+        )
+        field.borderStyle = .none
+        field.backgroundColor = AppColors.surfaceContainerHighest
+        field.textColor = AppColors.onSurface
         field.font = .systemFont(ofSize: 16)
+        field.layer.cornerRadius = 8
+        field.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 12, height: 0))
+        field.leftViewMode = .always
         field.heightAnchor.constraint(equalToConstant: 44).isActive = true
     }
 

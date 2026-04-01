@@ -14,6 +14,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Trigger Core Data stack initialization and seeding
         _ = AthleteStore.shared
+
+        // Global navigation bar appearance — Kinetic Lab dark theme
+        let navBarAppearance = UINavigationBarAppearance()
+        navBarAppearance.configureWithOpaqueBackground()
+        navBarAppearance.backgroundColor = AppColors.surfaceContainerLow
+        navBarAppearance.titleTextAttributes = [.foregroundColor: AppColors.onSurface]
+        navBarAppearance.largeTitleTextAttributes = [.foregroundColor: AppColors.onSurface]
+
+        UINavigationBar.appearance().standardAppearance = navBarAppearance
+        UINavigationBar.appearance().scrollEdgeAppearance = navBarAppearance
+        UINavigationBar.appearance().compactAppearance = navBarAppearance
+        UINavigationBar.appearance().tintColor = AppColors.primaryContainer
+
         return true
     }
 

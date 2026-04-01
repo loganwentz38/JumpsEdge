@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="24506" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="bVV-ps-WOf">
-    <device id="ipad9_7" orientation="portrait" layout="fullscreen" appearance="light"/>
+    <device id="ipad9_7" orientation="portrait" layout="fullscreen" appearance="dark"/>
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="24504"/>
+        <capability name="Named colors" minToolsVersion="9.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
-        <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="collection view cell content view" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -43,12 +43,12 @@
                             </label>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="dDN-yk-5bk">
                                 <rect key="frame" x="274" y="367" width="220" height="50"/>
-                                <color key="backgroundColor" systemColor="systemBlueColor"/>
+                                <color key="backgroundColor" name="KL_PrimaryContainer"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="220" id="SzA-E7-UdC"/>
                                     <constraint firstAttribute="height" constant="50" id="j9c-Sb-sAY"/>
                                 </constraints>
-                                <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <color key="tintColor" name="KL_OnPrimaryFixed"/>
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="plain" title="View Athlete Stats" titleAlignment="center">
                                     <fontDescription key="titleFontDescription" type="system" weight="semibold" pointSize="18"/>
@@ -71,12 +71,12 @@
                             </imageView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="GY1-R6-Ogc">
                                 <rect key="frame" x="274" y="437" width="220" height="50"/>
-                                <color key="backgroundColor" systemColor="systemBlueColor"/>
+                                <color key="backgroundColor" name="KL_PrimaryContainer"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="50" id="Nxc-S0-T6Q"/>
                                     <constraint firstAttribute="width" constant="220" id="oNi-QA-RMr"/>
                                 </constraints>
-                                <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <color key="tintColor" name="KL_OnPrimaryFixed"/>
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="plain" title="Add Athlete" titleAlignment="center">
                                     <fontDescription key="titleFontDescription" type="system" weight="semibold" pointSize="18"/>
@@ -92,12 +92,12 @@
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="rJm-V8-Kp2">
                                 <rect key="frame" x="274" y="507" width="220" height="50"/>
-                                <color key="backgroundColor" systemColor="systemBlueColor"/>
+                                <color key="backgroundColor" name="KL_PrimaryContainer"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="50" id="hT3-Qw-9Lm"/>
                                     <constraint firstAttribute="width" constant="220" id="pR4-Xz-7Bn"/>
                                 </constraints>
-                                <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <color key="tintColor" name="KL_OnPrimaryFixed"/>
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="plain" title="Record Jump" titleAlignment="center">
                                     <fontDescription key="titleFontDescription" type="system" weight="semibold" pointSize="18"/>
@@ -113,7 +113,7 @@
                             </button>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="3KN-7f-hS4"/>
-                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <color key="backgroundColor" name="KL_Surface"/>
                         <constraints>
                             <constraint firstItem="GY1-R6-Ogc" firstAttribute="centerX" secondItem="k2J-83-XnM" secondAttribute="centerX" id="C9c-FA-dfE"/>
                             <constraint firstItem="GY1-R6-Ogc" firstAttribute="top" secondItem="dDN-yk-5bk" secondAttribute="bottom" constant="20" id="CCw-3Z-lI8"/>
@@ -148,7 +148,7 @@
                         <subviews>
                             <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="GEG-AP-5q2">
                                 <rect key="frame" x="0.0" y="74" width="768" height="950"/>
-                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                                <color key="backgroundColor" name="KL_Surface"/>
                                 <collectionViewFlowLayout key="collectionViewLayout" automaticEstimatedItemSize="YES" minimumLineSpacing="10" minimumInteritemSpacing="10" id="m7m-09-9fJ">
                                     <size key="itemSize" width="128" height="128"/>
                                     <size key="headerReferenceSize" width="0.0" height="0.0"/>
@@ -213,7 +213,7 @@
                             </collectionView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
-                        <color key="backgroundColor" systemColor="tertiarySystemGroupedBackgroundColor"/>
+                        <color key="backgroundColor" name="KL_Surface"/>
                         <constraints>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="GEG-AP-5q2" secondAttribute="trailing" id="6TQ-Ze-Lq3"/>
                             <constraint firstItem="GEG-AP-5q2" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="8bn-QT-qWB"/>
@@ -239,7 +239,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <viewLayoutGuide key="safeArea" id="Ii5-UY-q8j"/>
-                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <color key="backgroundColor" name="KL_Surface"/>
                     </view>
                     <navigationItem key="navigationItem" id="1QE-S6-mF9"/>
                 </viewController>
@@ -249,14 +249,14 @@
         </scene>
     </scenes>
     <resources>
-        <systemColor name="systemBackgroundColor">
-            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-        </systemColor>
-        <systemColor name="systemBlueColor">
-            <color red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-        </systemColor>
-        <systemColor name="tertiarySystemGroupedBackgroundColor">
-            <color red="0.94901960780000005" green="0.94901960780000005" blue="0.96862745100000003" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-        </systemColor>
+        <namedColor name="KL_Surface">
+            <color red="0.055" green="0.055" blue="0.055" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <namedColor name="KL_PrimaryContainer">
+            <color red="0.792" green="0.992" blue="0.000" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <namedColor name="KL_OnPrimaryFixed">
+            <color red="0.227" green="0.290" blue="0.000" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
     </resources>
 </document>

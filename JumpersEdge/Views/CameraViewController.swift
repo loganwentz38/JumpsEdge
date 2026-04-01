@@ -26,7 +26,7 @@ class CameraViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .black
+        view.backgroundColor = AppColors.surfaceContainerLowest
         requestPermissionsAndSetup()
         setupControls()
         setupOrientationObserver()
@@ -156,7 +156,7 @@ class CameraViewController: UIViewController {
     private func setupControls() {
         // Record button
         recordButton.translatesAutoresizingMaskIntoConstraints = false
-        recordButton.backgroundColor = .red
+        recordButton.backgroundColor = AppColors.error
         recordButton.layer.cornerRadius = 36
         recordButton.layer.borderWidth = 4
         recordButton.layer.borderColor = UIColor.white.cgColor
@@ -224,7 +224,7 @@ class CameraViewController: UIViewController {
     @objc private func toggleRecording() {
         if movieOutput.isRecording {
             movieOutput.stopRecording()
-            recordButton.backgroundColor = .red
+            recordButton.backgroundColor = AppColors.error
             recordButton.layer.cornerRadius = 36
             fpsToggle.isUserInteractionEnabled = true
             fpsUnavailableLabel.isHidden = supports120fps
@@ -247,7 +247,7 @@ class CameraViewController: UIViewController {
             }
 
             movieOutput.startRecording(to: url, recordingDelegate: self)
-            recordButton.backgroundColor = UIColor.red.withAlphaComponent(0.6)
+            recordButton.backgroundColor = AppColors.error.withAlphaComponent(0.6)
             recordButton.layer.cornerRadius = 8
             fpsToggle.isUserInteractionEnabled = false
             fpsUnavailableLabel.isHidden = true
