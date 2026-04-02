@@ -234,6 +234,18 @@ class CameraViewController: UIViewController {
             try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
 
             let url = dir.appendingPathComponent("jump_\(UUID().uuidString).mov")
+
+            // Ensure the recorded video has the correct orientation before starting
+            if let movieConnection = movieOutput.connection(with: .video) {
+                switch UIDevice.current.orientation {
+                case .landscapeLeft:       movieConnection.videoRotationAngle = 0
+                case .landscapeRight:      movieConnection.videoRotationAngle = 180
+                case .portrait:            movieConnection.videoRotationAngle = 90
+                case .portraitUpsideDown:  movieConnection.videoRotationAngle = 270
+                default: break
+                }
+            }
+
             movieOutput.startRecording(to: url, recordingDelegate: self)
             recordButton.backgroundColor = UIColor.red.withAlphaComponent(0.6)
             recordButton.layer.cornerRadius = 8
@@ -263,13 +275,24 @@ class CameraViewController: UIViewController {
     }
 
     @objc private func orientationChanged() {
-        guard let connection = previewLayer?.connection else { return }
-        switch UIDevice.current.orientation {
-        case .landscapeLeft:       connection.videoRotationAngle = 0
-        case .landscapeRight:      connection.videoRotationAngle = 180
-        case .portrait:            connection.videoRotationAngle = 90
-        case .portraitUpsideDown:  connection.videoRotationAngle = 270
-        default: break
+        let orientation = UIDevice.current.orientation
+        if let connection = previewLayer?.connection {
+            switch orientation {
+            case .landscapeLeft:       connection.videoRotationAngle = 0
+            case .landscapeRight:      connection.videoRotationAngle = 180
+            case .portrait:            connection.videoRotationAngle = 90
+            case .portraitUpsideDown:  connection.videoRotationAngle = 270
+            default: break
+            }
+        }
+        if let movieConnection = movieOutput.connection(with: .video) {
+            switch orientation {
+            case .landscapeLeft:       movieConnection.videoRotationAngle = 0
+            case .landscapeRight:      movieConnection.videoRotationAngle = 180
+            case .portrait:            movieConnection.videoRotationAngle = 90
+            case .portraitUpsideDown:  movieConnection.videoRotationAngle = 270
+            default: break
+            }
         }
     }
 

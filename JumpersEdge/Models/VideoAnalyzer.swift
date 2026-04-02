@@ -77,6 +77,9 @@ nonisolated class VideoAnalyzer {
             return
         }
 
+        let preferredTransform = (try? await videoTrack.load(.preferredTransform)) ?? .identity
+        let videoOrientation = cgImageOrientation(from: preferredTransform)
+
         let fps = (try? await videoTrack.load(.nominalFrameRate)) ?? 0
         guard fps > 0 else {
             DispatchQueue.main.async { completion(.failure(VideoAnalysisError.cannotReadAsset)) }
@@ -122,7 +125,9 @@ nonisolated class VideoAnalyzer {
                 continue
             }
 
-            let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, options: [:])
+            let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer,
+                                                orientation: videoOrientation,
+                                                options: [:])
 
             do {
                 try handler.perform([poseRequest])
@@ -137,11 +142,11 @@ nonisolated class VideoAnalyzer {
                    let rightAnkle = try? observation.recognizedPoint(.rightAnkle),
                    let leftShoulder = try? observation.recognizedPoint(.leftShoulder),
                    let rightShoulder = try? observation.recognizedPoint(.rightShoulder),
-                   root.confidence > 0.5,
-                   leftAnkle.confidence > 0.5,
-                   rightAnkle.confidence > 0.5,
-                   leftShoulder.confidence > 0.5,
-                   rightShoulder.confidence > 0.5 {
+                   root.confidence > 0.3,
+                   leftAnkle.confidence > 0.3,
+                   rightAnkle.confidence > 0.3,
+                   leftShoulder.confidence > 0.2,
+                   rightShoulder.confidence > 0.2 {
 
                     frames.append(FrameData(
                         presentationTime: presentationTime,
@@ -324,6 +329,21 @@ nonisolated class VideoAnalyzer {
             if isMin { minima.append(i) }
         }
         return minima
+    }
+
+    /// Maps a video track's preferredTransform to the CGImagePropertyOrientation
+    /// that Vision needs to correctly interpret the pixel data.
+    private func cgImageOrientation(from transform: CGAffineTransform) -> CGImagePropertyOrientation {
+        if transform.a == 0 && transform.b == 1 && transform.c == -1 && transform.d == 0 {
+            return .right           // portrait
+        } else if transform.a == 0 && transform.b == -1 && transform.c == 1 && transform.d == 0 {
+            return .left            // portrait upside down
+        } else if transform.a == 1 && transform.b == 0 && transform.c == 0 && transform.d == 1 {
+            return .up              // landscape right (natural sensor orientation)
+        } else if transform.a == -1 && transform.b == 0 && transform.c == 0 && transform.d == -1 {
+            return .down            // landscape left
+        }
+        return .up                  // fallback: natural sensor orientation
     }
 
     /// Estimates the average stride length (meters) from foot plant events in the approach.
