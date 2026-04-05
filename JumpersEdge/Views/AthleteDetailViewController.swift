@@ -36,6 +36,7 @@ class AthleteDetailViewController: UIViewController {
 
     private func setupScrollView() {
         scrollView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.delaysContentTouches = false
         view.addSubview(scrollView)
 
         contentStack.axis = .vertical
