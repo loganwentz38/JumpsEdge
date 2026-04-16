@@ -6,6 +6,7 @@
 //
 
 import CoreData
+import os
 
 class CoreDataStack {
     static let shared = CoreDataStack()
@@ -49,7 +50,7 @@ class CoreDataStack {
             do {
                 try context.save()
             } catch {
-                print("Core Data save error: \(error.localizedDescription)")
+                Logger.coreData.error("Core Data save error: \(error.localizedDescription)")
             }
         }
     }

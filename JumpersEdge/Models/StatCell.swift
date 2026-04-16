@@ -9,6 +9,16 @@ import UIKit
 
 class StatCell: UICollectionViewCell {
 
+    static let reuseIdentifier = "cell"
+
+    // Display caps used to normalize each stat into a 0–1 progress bar.
+    private enum StatCaps {
+        static let maxSpeed: Double = 12.0       // m/s
+        static let maxAirTime: Double = 2.0      // s
+        static let maxJumpCount: Double = 50.0
+        static let maxConsistency: Double = 10.0
+    }
+
     // Kept for storyboard outlet connections — hidden in awakeFromNib
     @IBOutlet weak var nameLabel: UILabel!
     @IBOutlet weak var speedLabel: UILabel!
@@ -27,6 +37,14 @@ class StatCell: UICollectionViewCell {
         super.awakeFromNib()
         [nameLabel, speedLabel, staminaLabel, strengthLabel].forEach { $0?.isHidden = true }
         setupCard()
+    }
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        progressBars.forEach { $0.progress = 0 }
+        valueLabels.forEach { $0.text = nil }
+        initialLabel.text = nil
+        athleteNameLabel.text = nil
     }
 
     // MARK: - Card Setup
@@ -166,7 +184,12 @@ class StatCell: UICollectionViewCell {
         let consistency = (athlete.consistencyScore ?? 0) * 10
 
         let values = [speedVal, airVal, jumpCount, consistency]
-        let maxValues: [Double] = [12.0, 2.0, 50.0, 10.0]
+        let maxValues: [Double] = [
+            StatCaps.maxSpeed,
+            StatCaps.maxAirTime,
+            StatCaps.maxJumpCount,
+            StatCaps.maxConsistency,
+        ]
         let formatStrings = ["%.1f", "%.2f", "%.0f", "%.1f"]
 
         for (i, value) in values.enumerated() {

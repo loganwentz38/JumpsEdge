@@ -5,6 +5,7 @@
 
 import UIKit
 import AVFoundation
+import os
 
 class CameraViewController: UIViewController {
 
@@ -138,7 +139,7 @@ class CameraViewController: UIViewController {
             device.activeVideoMaxFrameDuration = CMTime(value: 1, timescale: CMTimeScale(fps))
             device.unlockForConfiguration()
         } catch {
-            print("Frame rate configuration failed: \(error)")
+            Logger.camera.error("Frame rate configuration failed: \(error.localizedDescription)")
         }
     }
 
@@ -237,13 +238,7 @@ class CameraViewController: UIViewController {
 
             // Ensure the recorded video has the correct orientation before starting
             if let movieConnection = movieOutput.connection(with: .video) {
-                switch UIDevice.current.orientation {
-                case .landscapeLeft:       movieConnection.videoRotationAngle = 0
-                case .landscapeRight:      movieConnection.videoRotationAngle = 180
-                case .portrait:            movieConnection.videoRotationAngle = 90
-                case .portraitUpsideDown:  movieConnection.videoRotationAngle = 270
-                default: break
-                }
+                applyRotation(to: movieConnection, for: UIDevice.current.orientation)
             }
 
             movieOutput.startRecording(to: url, recordingDelegate: self)
@@ -277,22 +272,23 @@ class CameraViewController: UIViewController {
     @objc private func orientationChanged() {
         let orientation = UIDevice.current.orientation
         if let connection = previewLayer?.connection {
-            switch orientation {
-            case .landscapeLeft:       connection.videoRotationAngle = 0
-            case .landscapeRight:      connection.videoRotationAngle = 180
-            case .portrait:            connection.videoRotationAngle = 90
-            case .portraitUpsideDown:  connection.videoRotationAngle = 270
-            default: break
-            }
+            applyRotation(to: connection, for: orientation)
         }
         if let movieConnection = movieOutput.connection(with: .video) {
-            switch orientation {
-            case .landscapeLeft:       movieConnection.videoRotationAngle = 0
-            case .landscapeRight:      movieConnection.videoRotationAngle = 180
-            case .portrait:            movieConnection.videoRotationAngle = 90
-            case .portraitUpsideDown:  movieConnection.videoRotationAngle = 270
-            default: break
-            }
+            applyRotation(to: movieConnection, for: orientation)
+        }
+    }
+
+    /// Maps a `UIDeviceOrientation` to the `videoRotationAngle` required by an
+    /// `AVCaptureConnection`. Unknown/face-up/face-down orientations are ignored
+    /// so the current rotation is preserved.
+    private func applyRotation(to connection: AVCaptureConnection, for orientation: UIDeviceOrientation) {
+        switch orientation {
+        case .landscapeLeft:      connection.videoRotationAngle = 0
+        case .landscapeRight:     connection.videoRotationAngle = 180
+        case .portrait:           connection.videoRotationAngle = 90
+        case .portraitUpsideDown: connection.videoRotationAngle = 270
+        default: break
         }
     }
 

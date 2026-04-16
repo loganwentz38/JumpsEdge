@@ -50,7 +50,9 @@ class StatsViewController: UIViewController,
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath) as! StatCell
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: StatCell.reuseIdentifier, for: indexPath) as? StatCell else {
+            return UICollectionViewCell()
+        }
         cell.configure(with: athletes[indexPath.item])
         return cell
     }
@@ -67,8 +69,7 @@ class StatsViewController: UIViewController,
     }
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let detailVC = AthleteDetailViewController()
-        detailVC.athlete = athletes[indexPath.item]
+        let detailVC = AthleteDetailViewController(athlete: athletes[indexPath.item])
         navigationController?.pushViewController(detailVC, animated: true)
     }
 

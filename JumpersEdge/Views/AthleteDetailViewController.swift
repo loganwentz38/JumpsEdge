@@ -10,7 +10,16 @@ import AVKit
 
 class AthleteDetailViewController: UIViewController {
 
-    var athlete: Athlete!
+    let athlete: Athlete
+
+    init(athlete: Athlete) {
+        self.athlete = athlete
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("AthleteDetailViewController must be created with init(athlete:)")
+    }
 
     private let scrollView = UIScrollView()
     private let contentStack = UIStackView()
@@ -60,19 +69,19 @@ class AthleteDetailViewController: UIViewController {
 
     private func setupForm() {
         // First Name
-        contentStack.addArrangedSubview(makeLabel("First Name"))
-        styleTextField(firstNameField, placeholder: "Enter first name")
+        contentStack.addArrangedSubview(AthleteFormStyle.makeLabel("First Name"))
+        AthleteFormStyle.styleTextField(firstNameField, placeholder: "Enter first name")
         firstNameField.autocapitalizationType = .words
         contentStack.addArrangedSubview(firstNameField)
 
         // Last Name
-        contentStack.addArrangedSubview(makeLabel("Last Name"))
-        styleTextField(lastNameField, placeholder: "Enter last name")
+        contentStack.addArrangedSubview(AthleteFormStyle.makeLabel("Last Name"))
+        AthleteFormStyle.styleTextField(lastNameField, placeholder: "Enter last name")
         lastNameField.autocapitalizationType = .words
         contentStack.addArrangedSubview(lastNameField)
 
         // Event
-        contentStack.addArrangedSubview(makeLabel("Event"))
+        contentStack.addArrangedSubview(AthleteFormStyle.makeLabel("Event"))
         eventSegment.backgroundColor = AppColors.surfaceContainerHigh
         eventSegment.selectedSegmentTintColor = AppColors.primaryContainer
         eventSegment.setTitleTextAttributes([.foregroundColor: AppColors.onSurface], for: .normal)
@@ -80,8 +89,8 @@ class AthleteDetailViewController: UIViewController {
         contentStack.addArrangedSubview(eventSegment)
 
         // Height
-        contentStack.addArrangedSubview(makeLabel("Height (meters)"))
-        styleTextField(heightField, placeholder: "e.g. 1.83")
+        contentStack.addArrangedSubview(AthleteFormStyle.makeLabel("Height (meters)"))
+        AthleteFormStyle.styleTextField(heightField, placeholder: "e.g. 1.83")
         heightField.keyboardType = .decimalPad
         contentStack.addArrangedSubview(heightField)
 
@@ -275,27 +284,19 @@ class AthleteDetailViewController: UIViewController {
 
         // Play Video button
         if FileManager.default.fileExists(atPath: analysis.videoURL.path) {
-            let playButton = UIButton(type: .system)
+            let playButton = VideoPlayButton(videoURL: analysis.videoURL)
             playButton.setTitle("Play Video", for: .normal)
             playButton.titleLabel?.font = .systemFont(ofSize: 13, weight: .medium)
-            playButton.tag = analysis.videoURL.hashValue
             playButton.addTarget(self, action: #selector(playVideoTapped(_:)), for: .touchUpInside)
             stack.addArrangedSubview(playButton)
-
-            // Store the URL so we can retrieve it on tap
-            objc_setAssociatedObject(playButton, AssociatedKeys.videoURL, analysis.videoURL, .OBJC_ASSOCIATION_RETAIN)
         }
 
         return card
     }
 
-    private enum AssociatedKeys {
-        nonisolated(unsafe) static let videoURL = malloc(1)!
-    }
-
     @objc private func playVideoTapped(_ sender: UIButton) {
-        guard let url = objc_getAssociatedObject(sender, AssociatedKeys.videoURL) as? URL else { return }
-        let player = AVPlayer(url: url)
+        guard let button = sender as? VideoPlayButton else { return }
+        let player = AVPlayer(url: button.videoURL)
         let playerVC = AVPlayerViewController()
         playerVC.player = player
         present(playerVC, animated: true) {
@@ -305,35 +306,12 @@ class AthleteDetailViewController: UIViewController {
 
     // MARK: - Helpers
 
-    private func makeLabel(_ text: String) -> UILabel {
-        let label = UILabel()
-        label.text = text
-        label.font = .systemFont(ofSize: 16, weight: .medium)
-        label.textColor = AppColors.onSurface
-        return label
-    }
-
     private func makeSectionHeader(_ text: String) -> UILabel {
         let label = UILabel()
         label.text = text
         label.font = .systemFont(ofSize: 20, weight: .bold)
         label.textColor = AppColors.onSurface
         return label
-    }
-
-    private func styleTextField(_ field: UITextField, placeholder: String) {
-        field.attributedPlaceholder = NSAttributedString(
-            string: placeholder,
-            attributes: [.foregroundColor: AppColors.onSurfaceVariant]
-        )
-        field.borderStyle = .none
-        field.backgroundColor = AppColors.surfaceContainerHighest
-        field.textColor = AppColors.onSurface
-        field.font = .systemFont(ofSize: 16)
-        field.layer.cornerRadius = 8
-        field.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 12, height: 0))
-        field.leftViewMode = .always
-        field.heightAnchor.constraint(equalToConstant: 44).isActive = true
     }
 
     private func formatOptional(_ value: Double?, format: String) -> String {
@@ -395,5 +373,22 @@ class AthleteDetailViewController: UIViewController {
         let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
+    }
+}
+
+// MARK: - VideoPlayButton
+
+/// A button that carries the video URL it should play, avoiding the need
+/// for associated objects or UIButton.tag lookups.
+private final class VideoPlayButton: UIButton {
+    let videoURL: URL
+
+    init(videoURL: URL) {
+        self.videoURL = videoURL
+        super.init(frame: .zero)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("VideoPlayButton must be created with init(videoURL:)")
     }
 }

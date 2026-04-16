@@ -7,7 +7,7 @@ import AVFoundation
 import Vision
 import UIKit
 
-nonisolated enum VideoAnalysisError: LocalizedError {
+enum VideoAnalysisError: LocalizedError {
     case cannotReadAsset
     case noVideoTrack
     case cannotCreateReader
@@ -29,7 +29,7 @@ nonisolated enum VideoAnalysisError: LocalizedError {
     }
 }
 
-nonisolated class VideoAnalyzer {
+final class VideoAnalyzer {
 
     typealias ProgressHandler = (Float) -> Void
     typealias CompletionHandler = (Result<JumpAnalysis, Error>) -> Void
@@ -359,16 +359,21 @@ nonisolated class VideoAnalyzer {
         guard approachFrames.count >= 10 else { return 0.0 }
 
         // 5-frame smoothing window (~83ms at 60fps) suppresses jitter without
-        // blurring true foot-plant events
+        // blurring true foot-plant events.
         let smoothingWindow = 5
-        let halfWindow = smoothingWindow
+
+        // Minima search uses a wider window than the smoothing window to avoid
+        // picking up local jitter as foot-plants. Each candidate must be lower
+        // than every neighbor up to `minimaHalfWindow` frames away on each side,
+        // yielding an effective 11-frame (±5) plant-detection window.
+        let minimaHalfWindow = 5
 
         let leftY  = smoothed(approachFrames.map { $0.leftAnkleY },  window: smoothingWindow)
         let rightY = smoothed(approachFrames.map { $0.rightAnkleY }, window: smoothingWindow)
 
         // Foot plants are local minima in each ankle's Y (lowest Y = closest to ground)
-        let leftPlants  = localMinima(in: leftY,  halfWindow: halfWindow)
-        let rightPlants = localMinima(in: rightY, halfWindow: halfWindow)
+        let leftPlants  = localMinima(in: leftY,  halfWindow: minimaHalfWindow)
+        let rightPlants = localMinima(in: rightY, halfWindow: minimaHalfWindow)
 
         struct PlantEvent {
             let frame: Int

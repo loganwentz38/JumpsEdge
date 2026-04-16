@@ -38,17 +38,17 @@ class AddAthleteViewController: UIViewController {
         ])
 
         // First Name
-        let firstNameLabel = makeLabel("First Name")
-        styleTextField(firstNameField, placeholder: "Enter first name")
+        let firstNameLabel = AthleteFormStyle.makeLabel("First Name")
+        AthleteFormStyle.styleTextField(firstNameField, placeholder: "Enter first name")
         firstNameField.autocapitalizationType = .words
 
         // Last Name
-        let lastNameLabel = makeLabel("Last Name")
-        styleTextField(lastNameField, placeholder: "Enter last name")
+        let lastNameLabel = AthleteFormStyle.makeLabel("Last Name")
+        AthleteFormStyle.styleTextField(lastNameField, placeholder: "Enter last name")
         lastNameField.autocapitalizationType = .words
 
         // Event
-        let eventLabel = makeLabel("Event")
+        let eventLabel = AthleteFormStyle.makeLabel("Event")
         eventSegment.selectedSegmentIndex = 0
         eventSegment.backgroundColor = AppColors.surfaceContainerHigh
         eventSegment.selectedSegmentTintColor = AppColors.primaryContainer
@@ -56,8 +56,8 @@ class AddAthleteViewController: UIViewController {
         eventSegment.setTitleTextAttributes([.foregroundColor: AppColors.onPrimaryFixed], for: .selected)
 
         // Height
-        let heightLabel = makeLabel("Height (meters)")
-        styleTextField(heightField, placeholder: "e.g. 1.83")
+        let heightLabel = AthleteFormStyle.makeLabel("Height (meters)")
+        AthleteFormStyle.styleTextField(heightField, placeholder: "e.g. 1.83")
         heightField.keyboardType = .decimalPad
 
         // Save Button
@@ -84,29 +84,6 @@ class AddAthleteViewController: UIViewController {
         spacer.heightAnchor.constraint(equalToConstant: 12).isActive = true
         stack.addArrangedSubview(spacer)
         stack.addArrangedSubview(saveButton)
-    }
-
-    private func makeLabel(_ text: String) -> UILabel {
-        let label = UILabel()
-        label.text = text
-        label.font = .systemFont(ofSize: 16, weight: .medium)
-        label.textColor = AppColors.onSurface
-        return label
-    }
-
-    private func styleTextField(_ field: UITextField, placeholder: String) {
-        field.attributedPlaceholder = NSAttributedString(
-            string: placeholder,
-            attributes: [.foregroundColor: AppColors.onSurfaceVariant]
-        )
-        field.borderStyle = .none
-        field.backgroundColor = AppColors.surfaceContainerHighest
-        field.textColor = AppColors.onSurface
-        field.font = .systemFont(ofSize: 16)
-        field.layer.cornerRadius = 8
-        field.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 12, height: 0))
-        field.leftViewMode = .always
-        field.heightAnchor.constraint(equalToConstant: 44).isActive = true
     }
 
     // MARK: - Save

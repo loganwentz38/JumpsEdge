@@ -7,6 +7,7 @@
 
 import Foundation
 import CoreData
+import os
 
 class AthleteStore {
     static let shared = AthleteStore()
@@ -19,12 +20,19 @@ class AthleteStore {
 
         do {
             let entities = try context.fetch(request)
-            return entities.map { entity in
-                // Backfill UUID for athletes created before V3 migration
-                if entity.id == nil {
-                    entity.id = UUID()
-                    CoreDataStack.shared.saveContext()
-                }
+
+            // Backfill UUIDs for athletes created before V3 migration in a single
+            // pass, then save once. Previously this saved inside the map closure,
+            // producing O(N) writes on first launch after migration.
+            var needsSave = false
+            for entity in entities where entity.id == nil {
+                entity.id = UUID()
+                needsSave = true
+            }
+            if needsSave { CoreDataStack.shared.saveContext() }
+
+            return entities.compactMap { entity in
+                guard let id = entity.id else { return nil }
 
                 let event = JumpEvent(rawValue: entity.event ?? "Long Jump") ?? .longJump
                 let videoPaths = entity.videoURLsData ?? []
@@ -45,7 +53,7 @@ class AthleteStore {
                     }
 
                 return Athlete(
-                    id: entity.id!,
+                    id: id,
                     firstName: entity.firstName ?? "",
                     lastName: entity.lastName ?? "",
                     event: event,
@@ -55,7 +63,7 @@ class AthleteStore {
                 )
             }
         } catch {
-            print("Failed to fetch athletes: \(error.localizedDescription)")
+            Logger.store.error("Failed to fetch athletes: \(error.localizedDescription)")
             return []
         }
     }
@@ -149,7 +157,7 @@ class AthleteStore {
                 CoreDataStack.shared.saveContext()
             }
         } catch {
-            print("Failed to delete jump analysis: \(error.localizedDescription)")
+            Logger.store.error("Failed to delete jump analysis: \(error.localizedDescription)")
         }
     }
 
