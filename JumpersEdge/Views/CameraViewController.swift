@@ -17,6 +17,8 @@ class CameraViewController: UIViewController {
     private var selectedFrameRate: Int = 60
     private var isCancelling = false
     private var supports120fps = false
+    private var rotationCoordinator: AVCaptureDevice.RotationCoordinator?
+    private var previewRotationObservation: NSKeyValueObservation?
 
     // MARK: - Controls
 
@@ -30,7 +32,6 @@ class CameraViewController: UIViewController {
         view.backgroundColor = AppColors.surfaceContainerLowest
         requestPermissionsAndSetup()
         setupControls()
-        setupOrientationObserver()
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -150,6 +151,32 @@ class CameraViewController: UIViewController {
         previewLayer.videoGravity = .resizeAspectFill
         previewLayer.frame = view.bounds
         view.layer.insertSublayer(previewLayer, at: 0)
+        setupRotationCoordinator()
+    }
+
+    // MARK: - Rotation
+
+    /// Uses RotationCoordinator (gravity-based) instead of UIDevice orientation,
+    /// which reports faceUp/faceDown/unknown when the phone is flat or tilted
+    /// down — common when filming a runway from stands — leaving the recorded
+    /// file's rotation metadata wrong and breaking body-pose detection.
+    private func setupRotationCoordinator() {
+        guard let device = (session.inputs.first as? AVCaptureDeviceInput)?.device else { return }
+
+        let coordinator = AVCaptureDevice.RotationCoordinator(device: device, previewLayer: previewLayer)
+        rotationCoordinator = coordinator
+
+        previewRotationObservation = coordinator.observe(
+            \.videoRotationAngleForHorizonLevelPreview,
+            options: [.initial, .new]
+        ) { [weak self] coordinator, _ in
+            let angle = coordinator.videoRotationAngleForHorizonLevelPreview
+            DispatchQueue.main.async {
+                guard let connection = self?.previewLayer?.connection,
+                      connection.isVideoRotationAngleSupported(angle) else { return }
+                connection.videoRotationAngle = angle
+            }
+        }
     }
 
     // MARK: - Controls Setup
@@ -236,9 +263,15 @@ class CameraViewController: UIViewController {
 
             let url = dir.appendingPathComponent("jump_\(UUID().uuidString).mov")
 
-            // Ensure the recorded video has the correct orientation before starting
-            if let movieConnection = movieOutput.connection(with: .video) {
-                applyRotation(to: movieConnection, for: UIDevice.current.orientation)
+            // Ensure the recorded video has the correct orientation before starting.
+            // The angle is fixed for the duration of the recording so the file's
+            // rotation metadata stays consistent even if the phone rotates mid-jump.
+            if let movieConnection = movieOutput.connection(with: .video),
+               let coordinator = rotationCoordinator {
+                let angle = coordinator.videoRotationAngleForHorizonLevelCapture
+                if movieConnection.isVideoRotationAngleSupported(angle) {
+                    movieConnection.videoRotationAngle = angle
+                }
             }
 
             movieOutput.startRecording(to: url, recordingDelegate: self)
@@ -260,41 +293,6 @@ class CameraViewController: UIViewController {
         }
     }
 
-    // MARK: - Orientation
-
-    private func setupOrientationObserver() {
-        NotificationCenter.default.addObserver(self,
-            selector: #selector(orientationChanged),
-            name: UIDevice.orientationDidChangeNotification,
-            object: nil)
-    }
-
-    @objc private func orientationChanged() {
-        let orientation = UIDevice.current.orientation
-        if let connection = previewLayer?.connection {
-            applyRotation(to: connection, for: orientation)
-        }
-        if let movieConnection = movieOutput.connection(with: .video) {
-            applyRotation(to: movieConnection, for: orientation)
-        }
-    }
-
-    /// Maps a `UIDeviceOrientation` to the `videoRotationAngle` required by an
-    /// `AVCaptureConnection`. Unknown/face-up/face-down orientations are ignored
-    /// so the current rotation is preserved.
-    private func applyRotation(to connection: AVCaptureConnection, for orientation: UIDeviceOrientation) {
-        switch orientation {
-        case .landscapeLeft:      connection.videoRotationAngle = 0
-        case .landscapeRight:     connection.videoRotationAngle = 180
-        case .portrait:           connection.videoRotationAngle = 90
-        case .portraitUpsideDown: connection.videoRotationAngle = 270
-        default: break
-        }
-    }
-
-    deinit {
-        NotificationCenter.default.removeObserver(self)
-    }
 }
 
 // MARK: - AVCaptureFileOutputRecordingDelegate
