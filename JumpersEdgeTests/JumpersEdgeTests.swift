@@ -5,6 +5,7 @@
 //  Created by Logan Wentz on 1/15/26.
 //
 
+import Foundation
 import Testing
 @testable import JumpersEdge
 

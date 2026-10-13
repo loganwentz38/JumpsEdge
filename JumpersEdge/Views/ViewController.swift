@@ -7,6 +7,7 @@
 
 import UIKit
 import AVFoundation
+import AVKit
 
 class ViewController: UIViewController {
 
@@ -127,8 +128,11 @@ class ViewController: UIViewController {
                         self?.showAlert(message)
 
                     case .failure(let error):
-                        try? FileManager.default.removeItem(at: url)
-                        self?.showAlert("Analysis failed for \(athleteName): \(error.localizedDescription)")
+                        self?.showAnalysisFailedAlert(
+                            message: "Analysis failed for \(athleteName): \(error.localizedDescription)",
+                            videoURL: url,
+                            athleteID: athleteID
+                        )
                     }
                 }
             }
@@ -136,6 +140,33 @@ class ViewController: UIViewController {
     }
 
     // MARK: - Alerts
+
+    /// Lets the coach watch the clip to see what went wrong (framing, lighting,
+    /// feet out of shot) instead of silently losing the recording. Kept videos
+    /// are attached to the athlete, so they're cleaned up if the athlete is deleted.
+    private func showAnalysisFailedAlert(message: String, videoURL: URL, athleteID: UUID) {
+        let alert = UIAlertController(title: "Analysis Failed", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Watch Video", style: .default) { [weak self] _ in
+            AthleteStore.shared.addVideo(videoURL, toAthleteID: athleteID)
+            self?.playVideo(at: videoURL)
+        })
+        alert.addAction(UIAlertAction(title: "Keep Video", style: .default) { _ in
+            AthleteStore.shared.addVideo(videoURL, toAthleteID: athleteID)
+        })
+        alert.addAction(UIAlertAction(title: "Delete Video", style: .destructive) { _ in
+            try? FileManager.default.removeItem(at: videoURL)
+        })
+        present(alert, animated: true)
+    }
+
+    private func playVideo(at url: URL) {
+        let player = AVPlayer(url: url)
+        let playerVC = AVPlayerViewController()
+        playerVC.player = player
+        present(playerVC, animated: true) {
+            player.play()
+        }
+    }
 
     private func showAlert(_ message: String) {
         let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)

@@ -7,11 +7,11 @@ import AVFoundation
 import Vision
 import UIKit
 
-enum VideoAnalysisError: LocalizedError {
+nonisolated enum VideoAnalysisError: LocalizedError {
     case cannotReadAsset
     case noVideoTrack
     case cannotCreateReader
-    case noBodyDetected
+    case noBodyDetected(usableFrames: Int, framesWithPerson: Int, totalFrames: Int)
     case insufficientFrames
     case noTakeoffDetected
     case landingNotDetected
@@ -21,7 +21,11 @@ enum VideoAnalysisError: LocalizedError {
         case .cannotReadAsset: return "Cannot read the video file."
         case .noVideoTrack: return "No video track found in file."
         case .cannotCreateReader: return "Cannot create video reader."
-        case .noBodyDetected: return "No human body detected in video."
+        case let .noBodyDetected(usableFrames, framesWithPerson, totalFrames):
+            if framesWithPerson == 0 {
+                return "No person was detected in the video. Make sure the athlete is in frame and well lit."
+            }
+            return "The athlete's hips and ankles were only clearly visible in \(usableFrames) of \(totalFrames) frames. Keep the athlete's whole body, including their feet, in frame, film from the side, and hold the iPad still."
         case .insufficientFrames: return "Not enough frames to analyze."
         case .noTakeoffDetected: return "Could not detect takeoff moment."
         case .landingNotDetected: return "Could not detect landing — ensure the full jump is visible in the video."
@@ -29,7 +33,10 @@ enum VideoAnalysisError: LocalizedError {
     }
 }
 
-final class VideoAnalyzer {
+// `nonisolated` is required: the target defaults every type to @MainActor
+// (SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor), so without it the whole
+// frame-by-frame Vision loop runs on the main thread and freezes the UI.
+nonisolated final class VideoAnalyzer {
 
     typealias ProgressHandler = (Float) -> Void
     typealias CompletionHandler = (Result<JumpAnalysis, Error>) -> Void
@@ -57,14 +64,14 @@ final class VideoAnalyzer {
         let rootPosition: CGPoint
         let leftAnkleY: CGFloat
         let rightAnkleY: CGFloat
-        let leftShoulderPosition: CGPoint
-        let rightShoulderPosition: CGPoint
+        let shoulderY: CGFloat?           // nil when neither shoulder was confidently detected
         let leftAnklePosition: CGPoint
         let rightAnklePosition: CGPoint
     }
 
     // MARK: - Analysis Pipeline
 
+    @concurrent
     private func performAnalysis(videoURL: URL,
                                  athleteHeight: Double,
                                  progress: @escaping ProgressHandler,
@@ -111,53 +118,41 @@ final class VideoAnalyzer {
 
         var frames: [FrameData] = []
         var frameIndex = 0
+        var framesWithPerson = 0        // frames where anyone was detected, for the error message
+        var lastAthleteRoot: CGPoint?   // where the athlete was last seen, to keep following them
 
         // Reuse request across frames — only the handler needs to be per-frame
         let poseRequest = VNDetectHumanBodyPoseRequest()
 
         // Extract body pose from each frame
         while let sampleBuffer = trackOutput.copyNextSampleBuffer() {
-            // Capture presentation time before potentially skipping the frame
-            let presentationTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
+            // Drain Vision's per-frame temporaries each iteration instead of
+            // letting them accumulate for the length of the video.
+            autoreleasepool {
+                // Capture presentation time before potentially skipping the frame
+                let presentationTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
 
-            guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
-                frameIndex += 1
-                continue
-            }
+                guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
 
-            let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer,
-                                                orientation: videoOrientation,
-                                                options: [:])
+                let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer,
+                                                    orientation: videoOrientation,
+                                                    options: [:])
 
-            do {
-                try handler.perform([poseRequest])
-            } catch {
-                frameIndex += 1
-                continue
-            }
+                do {
+                    try handler.perform([poseRequest])
+                } catch {
+                    return
+                }
 
-            if let observation = poseRequest.results?.first {
-                if let root = try? observation.recognizedPoint(.root),
-                   let leftAnkle = try? observation.recognizedPoint(.leftAnkle),
-                   let rightAnkle = try? observation.recognizedPoint(.rightAnkle),
-                   let leftShoulder = try? observation.recognizedPoint(.leftShoulder),
-                   let rightShoulder = try? observation.recognizedPoint(.rightShoulder),
-                   root.confidence > 0.3,
-                   leftAnkle.confidence > 0.3,
-                   rightAnkle.confidence > 0.3,
-                   leftShoulder.confidence > 0.2,
-                   rightShoulder.confidence > 0.2 {
+                guard let observation = selectAthlete(from: poseRequest.results ?? [],
+                                                      near: lastAthleteRoot) else { return }
+                framesWithPerson += 1
+                if let root = try? observation.recognizedPoint(.root), root.confidence > 0.1 {
+                    lastAthleteRoot = root.location
+                }
 
-                    frames.append(FrameData(
-                        presentationTime: presentationTime,
-                        rootPosition: root.location,
-                        leftAnkleY: leftAnkle.location.y,
-                        rightAnkleY: rightAnkle.location.y,
-                        leftShoulderPosition: leftShoulder.location,
-                        rightShoulderPosition: rightShoulder.location,
-                        leftAnklePosition: leftAnkle.location,
-                        rightAnklePosition: rightAnkle.location
-                    ))
+                if let frame = makeFrameData(from: observation, at: presentationTime) {
+                    frames.append(frame)
                 }
             }
 
@@ -168,8 +163,18 @@ final class VideoAnalyzer {
             }
         }
 
+        // copyNextSampleBuffer() also returns nil when decoding fails partway
+        // through; report that instead of blaming body detection.
+        guard reader.status != .failed else {
+            DispatchQueue.main.async { completion(.failure(VideoAnalysisError.cannotReadAsset)) }
+            return
+        }
+
         guard frames.count >= 10 else {
-            DispatchQueue.main.async { completion(.failure(VideoAnalysisError.noBodyDetected)) }
+            let error = VideoAnalysisError.noBodyDetected(usableFrames: frames.count,
+                                                          framesWithPerson: framesWithPerson,
+                                                          totalFrames: frameIndex)
+            DispatchQueue.main.async { completion(.failure(error)) }
             return
         }
 
@@ -261,14 +266,11 @@ final class VideoAnalyzer {
             // robust because the athlete may be partially cropped or leaning at any
             // single frame.
             let bodyHeightNormalized: CGFloat = {
-                let approachRange = approachStart...approachEnd
-                let heights = approachRange.compactMap { i -> CGFloat? in
-                    let f = frames[i]
-                    let sY = (f.leftShoulderPosition.y + f.rightShoulderPosition.y) / 2
-                    let aY = (f.leftAnklePosition.y + f.rightAnklePosition.y) / 2
-                    let h = abs(sY - aY)
-                    // Discard frames where the body span is implausibly small
-                    return h > 0.01 ? h : nil
+                var heights = shoulderToAnkleSpans(in: frames[approachStart...approachEnd])
+                // Shoulders are optional per frame; if none were visible during the
+                // approach, fall back to the whole clip rather than losing the scale.
+                if heights.isEmpty {
+                    heights = shoulderToAnkleSpans(in: frames[...])
                 }
                 guard !heights.isEmpty else { return 0 }
                 return heights.reduce(0, +) / CGFloat(heights.count)
@@ -301,6 +303,87 @@ final class VideoAnalyzer {
         DispatchQueue.main.async {
             progress(1.0)
             completion(.success(result))
+        }
+    }
+
+    // MARK: - Pose Helpers
+
+    /// Picks the athlete when Vision finds several people (coaches, other
+    /// jumpers, officials). Prefers whoever is nearest to where the athlete was
+    /// last seen so tracking doesn't hop between people mid-jump; otherwise takes
+    /// the person who appears tallest in frame. A lone person is always used.
+    private func selectAthlete(from observations: [VNHumanBodyPoseObservation],
+                               near lastRoot: CGPoint?) -> VNHumanBodyPoseObservation? {
+        guard observations.count > 1 else { return observations.first }
+
+        if let lastRoot {
+            let nearest = observations
+                .compactMap { observation -> (observation: VNHumanBodyPoseObservation, distance: CGFloat)? in
+                    guard let root = try? observation.recognizedPoint(.root),
+                          root.confidence > 0.1 else { return nil }
+                    let distance = hypot(root.location.x - lastRoot.x, root.location.y - lastRoot.y)
+                    return (observation, distance)
+                }
+                .min { $0.distance < $1.distance }
+
+            // Normalized image distance. A sprinting athlete moves ~0.02 per frame,
+            // so this tolerates several missed frames without switching people.
+            if let nearest, nearest.distance < 0.2 {
+                return nearest.observation
+            }
+        }
+
+        return observations.max { apparentHeight(of: $0) < apparentHeight(of: $1) }
+    }
+
+    /// Vertical extent of a person's confidently detected joints, in normalized
+    /// image coordinates — a proxy for how large they appear in frame.
+    private func apparentHeight(of observation: VNHumanBodyPoseObservation) -> CGFloat {
+        guard let points = try? observation.recognizedPoints(.all) else { return 0 }
+        let ys = points.values.filter { $0.confidence > 0.1 }.map { $0.location.y }
+        guard let lowest = ys.min(), let highest = ys.max() else { return 0 }
+        return highest - lowest
+    }
+
+    /// Extracts the joints the analysis needs, or nil if the hips or either ankle
+    /// weren't detected confidently. Shoulders are optional: in a side-on shot the
+    /// far shoulder is often hidden, and they're only used to estimate body size.
+    private func makeFrameData(from observation: VNHumanBodyPoseObservation,
+                               at presentationTime: CMTime) -> FrameData? {
+        guard let root = try? observation.recognizedPoint(.root),
+              let leftAnkle = try? observation.recognizedPoint(.leftAnkle),
+              let rightAnkle = try? observation.recognizedPoint(.rightAnkle),
+              root.confidence > 0.3,
+              leftAnkle.confidence > 0.3,
+              rightAnkle.confidence > 0.3 else { return nil }
+
+        let shoulderJoints: [VNHumanBodyPoseObservation.JointName] = [.leftShoulder, .rightShoulder]
+        let shoulderYs: [CGFloat] = shoulderJoints.compactMap { joint in
+            guard let shoulder = try? observation.recognizedPoint(joint),
+                  shoulder.confidence > 0.2 else { return nil }
+            return shoulder.location.y
+        }
+        let shoulderY = shoulderYs.isEmpty ? nil : shoulderYs.reduce(0, +) / CGFloat(shoulderYs.count)
+
+        return FrameData(
+            presentationTime: presentationTime,
+            rootPosition: root.location,
+            leftAnkleY: leftAnkle.location.y,
+            rightAnkleY: rightAnkle.location.y,
+            shoulderY: shoulderY,
+            leftAnklePosition: leftAnkle.location,
+            rightAnklePosition: rightAnkle.location
+        )
+    }
+
+    /// Shoulder-to-ankle span for each frame where a shoulder was visible.
+    private func shoulderToAnkleSpans(in frames: ArraySlice<FrameData>) -> [CGFloat] {
+        frames.compactMap { f -> CGFloat? in
+            guard let shoulderY = f.shoulderY else { return nil }
+            let ankleY = (f.leftAnklePosition.y + f.rightAnklePosition.y) / 2
+            let span = abs(shoulderY - ankleY)
+            // Discard frames where the body span is implausibly small
+            return span > 0.01 ? span : nil
         }
     }
 
